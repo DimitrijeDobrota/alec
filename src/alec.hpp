@@ -113,66 +113,78 @@ template <std::intmax_t N> static constexpr auto to_stringp = join<to_string<N>,
 // Move cursor up/down/frwd/back
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_UP(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'A'>>;
 }
 
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_DOWN(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'B'>>;
 }
 
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_FRWD(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'C'>>;
 }
 
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_BACK(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'D'>>;
 }
 
 // Move cursor to the next/prev line
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_LINE_NEXT(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'E'>>;
 }
 
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_LINE_PREV(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'F'>>;
 }
 
 // Set cursor to specific column
 template <int n, class CharT, class Traits>
 static constexpr auto &CURSOR_COLUMN(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'G'>>;
 }
 
 // Erase functions
 template <int n, class CharT, class Traits>
 static constexpr auto &ERASE_DISPLAY(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0 && n <= 4, "invalid argument");
     return bos << escape<to_string<n>, to_stringc<'J'>>;
 }
 
 template <int n, class CharT, class Traits>
 static constexpr auto &ERASE_LINE(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0 && n <= 4, "invalid argument");
     return bos << escape<to_string<n>, to_stringc<'K'>>;
 }
 
 // Scroll up/down
 template <int n, class CharT, class Traits>
 static constexpr auto &SCROLL_UP(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'S'>>;
 }
 
 template <int n, class CharT, class Traits>
 static constexpr auto &SCROLL_DOWN(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0, "cant' use negative numbers");
     return bos << escape<to_string<n>, to_stringc<'T'>>;
 }
 
 // Set cursor to a specific position
 template <int n, int m, class CharT, class Traits>
 static constexpr auto &CURSOR_POSITION(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(n >= 0 && m >= 0, "cant' use negative numbers");
     return bos << escape<to_stringp<n>, to_string<m>, to_stringc<'H'>>;
 }
 
@@ -190,23 +202,31 @@ static constexpr auto &BACKGROUND(std::basic_ostream<CharT, Traits> &bos) {
 // 256-color palette
 template <int idx, class CharT, class Traits>
 static constexpr auto &FOREGROUND(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(idx >= 0 && idx < 256, "value must be between 0 and 255");
     return bos << escape<to_stringp<38>, to_stringp<5>, to_string<idx>, to_stringc<'m'>>;
 }
 
 template <int idx, class CharT, class Traits>
 static constexpr auto &BACKGROUND(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(idx >= 0 && idx < 256, "value must be between 0 and 255");
     return bos << escape<to_stringp<48>, to_stringp<5>, to_string<idx>, to_stringc<'m'>>;
 }
 
 // RGB colors
 template <int R, int G, int B, class CharT, class Traits>
 static constexpr auto &FOREGROUND(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(R >= 0 && R < 256, "R value must be between 0 and 255");
+    static_assert(G >= 0 && G < 256, "G value must be between 0 and 255");
+    static_assert(B >= 0 && B < 256, "B value must be between 0 and 255");
     return bos << escape<to_stringp<38>, to_stringp<5>, to_stringp<R>, to_stringp<G>, to_string<B>,
                          to_stringc<'m'>>;
 }
 
 template <int R, int G, int B, class CharT, class Traits>
 static constexpr auto &BACKGROUND(std::basic_ostream<CharT, Traits> &bos) {
+    static_assert(R >= 0 && R < 256, "R value must be between 0 and 255");
+    static_assert(G >= 0 && G < 256, "G value must be between 0 and 255");
+    static_assert(B >= 0 && B < 256, "B value must be between 0 and 255");
     return bos << escape<to_stringp<48>, to_stringp<5>, to_stringp<R>, to_stringp<G>, to_string<B>,
                          to_stringc<'m'>>;
 }
