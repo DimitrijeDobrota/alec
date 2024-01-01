@@ -7,10 +7,10 @@ int main(void) {
 
     std::cout << ABUF_SHOW << CURSOR_HIDE;
 
-    std::cout << CURSOR_POSITION<1, 1> << FOREGROUND<91> << "HELLO!\n";
+    std::cout << CURSOR_POSITION<1, 1> << FOREGROUND_256<91> << "HELLO!\n";
 
     std::cout << CURSOR_DOWN<3>;
-    std::cout << FOREGROUND<30> << BACKGROUND<196> << "WORLD!\n";
+    std::cout << FOREGROUND_256<30> << BACKGROUND_256<196> << "WORLD!\n";
 
     std::cout << BACKGROUND<DEFAULT> << "testing 1...\n" << FOREGROUND<DEFAULT>;
     std::cout << DECOR_SET<INVERSE> << "testing 2...\n" << DECOR_RESET<INVERSE>;
