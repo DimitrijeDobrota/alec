@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
-#include <iostream>
 #include <type_traits>
 
 namespace ALEC {
@@ -44,9 +43,6 @@ enum class DECOR {
     HIDE = 8,
     STRIKE = 9,
 };
-
-using enum COLOR;
-using enum DECOR;
 
 namespace details {
 
@@ -99,6 +95,7 @@ template <auto... Args> struct escape_t {
 };
 
 template <auto... Strs> static constexpr auto escape = escape_t<Strs...>::value.data();
+template <details::string_literal... Strs> static constexpr auto escape_literal = escape<Strs...>;
 
 } // namespace details
 
@@ -167,45 +164,49 @@ template <intmax_t n, intmax_t m>
     requires limit_pos<n> && limit_pos<m>
 static constexpr auto CURSOR_POSITION = details::escape<n, ';', m, 'H'>;
 
+// color
+template <auto... val> static const char *FOREGROUND;
+template <auto... val> static const char *BACKGROUND;
+
 // palet colors
-template <COLOR color> static constexpr auto FOREGROUND = details::escape<(intmax_t)color + 30, 'm'>;
-template <COLOR color> static constexpr auto BACKGROUND = details::escape<(intmax_t)color + 40, 'm'>;
+template <COLOR color> static constexpr auto FOREGROUND<color> = details::escape<(intmax_t)color + 30, 'm'>;
+template <COLOR color> static constexpr auto BACKGROUND<color> = details::escape<(intmax_t)color + 40, 'm'>;
 
 // 256-color palette
 template <intmax_t idx>
     requires limit_256<idx>
-static constexpr auto FOREGROUND_256 = details::escape<intmax_t(38), ';', intmax_t(5), ';', idx, 'm'>;
+static constexpr auto FOREGROUND<idx> = details::escape<intmax_t(38), ';', intmax_t(5), ';', idx, 'm'>;
 
 template <intmax_t idx>
     requires limit_256<idx>
-static constexpr auto BACKGROUND_256 = details::escape<intmax_t(48), ';', intmax_t(5), ';', idx, 'm'>;
+static constexpr auto BACKGROUND<idx> = details::escape<intmax_t(48), ';', intmax_t(5), ';', idx, 'm'>;
 
 // RGB colors
 template <intmax_t R, intmax_t G, intmax_t B>
     requires limit_256<R> && limit_256<G> && limit_256<B>
-static constexpr auto FOREGROUND_RGB =
+static constexpr auto FOREGROUND<R, G, B> =
     details::escape<intmax_t(38), ';', intmax_t(5), ';', R, ';', G, ';', B, 'm'>;
 
 template <intmax_t R, intmax_t G, intmax_t B>
     requires limit_256<R> && limit_256<G> && limit_256<B>
-static constexpr auto BACKGROUND_RGB =
+static constexpr auto BACKGROUND<R, G, B> =
     details::escape<intmax_t(48), ';', intmax_t(5), ';', R, ';', G, ';', B, 'm'>;
 
 // Set/reset text decorators
-template <DECOR decor> static constexpr const char *DECOR_SET = details::escape<(intmax_t)decor, 'm'>;
-template <DECOR decor> static constexpr const char *DECOR_RESET = details::escape<(intmax_t)decor + 20, 'm'>;
+template <DECOR decor> static constexpr auto DECOR_SET = details::escape<(intmax_t)decor, 'm'>;
+template <DECOR decor> static constexpr auto DECOR_RESET = details::escape<(intmax_t)decor + 20, 'm'>;
 
 // Savle/load cursor position;
-static constexpr const char *CURSOR_SAVE = details::escape<'s'>;
-static constexpr const char *CURSOR_LOAD = details::escape<'u'>;
+static constexpr auto CURSOR_SAVE = details::escape<'s'>;
+static constexpr auto CURSOR_LOAD = details::escape<'u'>;
 
 // Show/hide cursor
-static constexpr const char *CURSOR_SHOW = details::escape<details::string_literal("?25h")>;
-static constexpr const char *CURSOR_HIDE = details::escape<details::string_literal("?25l")>;
+static constexpr auto CURSOR_SHOW = details::escape_literal<"?25h">;
+static constexpr auto CURSOR_HIDE = details::escape_literal<"?25l">;
 
 // Show/hide alternate buffer
-static constexpr const char *ABUF_SHOW = details::escape<details::string_literal("?1049h")>;
-static constexpr const char *ABUF_HIDE = details::escape<details::string_literal("?1049l")>;
+static constexpr auto ABUF_SHOW = details::escape_literal<"?1049h">;
+static constexpr auto ABUF_HIDE = details::escape_literal<"?1049l">;
 
 } // namespace ALEC
 
