@@ -44,6 +44,12 @@ enum class DECOR {
     STRIKE = 9,
 };
 
+enum class MOTION {
+    END = 0,
+    BEGIN = 1,
+    WHOLE = 2,
+};
+
 namespace details {
 
 template <std::size_t N> struct string_literal {
@@ -59,7 +65,7 @@ template <auto... Args> struct escape_t {
 
     template <std::size_t N> static constexpr std::size_t size(string_literal<N> val) { return val.size(); }
     static constexpr std::size_t size(char val) { return 1; }
-    static constexpr std::size_t size(intmax_t val) {
+    static constexpr std::size_t size(int val) {
         std::size_t len = 1;
         while (val /= 10)
             len++;
@@ -76,7 +82,7 @@ template <auto... Args> struct escape_t {
         return ptr;
     }
 
-    static constexpr char *append(char *ptr, intmax_t val) {
+    static constexpr char *append(char *ptr, int val) {
         char *tmp = ptr += size(val);
         do {
             *--tmp = '0' + (val % 10);
@@ -101,66 +107,61 @@ template <details::string_literal... Strs> static constexpr auto escape_literal 
 
 // Tamplate parameter constraints
 
-template <intmax_t n>
+template <int n>
 concept limit_256 = n >= 0 && n < 256;
 
-template <intmax_t n>
+template <int n>
 concept limit_pos = n >= 0;
 
-template <intmax_t n>
-concept limit_4 = n >= 0 && n <= 4;
-
 // Move cursor up/down/frwd/back
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_UP = details::escape<n, 'A'>;
 
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_DOWN = details::escape<n, 'B'>;
 
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_FRWD = details::escape<n, 'C'>;
 
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_BACK = details::escape<n, 'D'>;
 
 // Move cursor to the next/prev line
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_LINE_NEXT = details::escape<n, 'E'>;
 
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_LINE_PREV = details::escape<n, 'F'>;
 
 // Set cursor to specific column
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto CURSOR_COLUMN = details::escape<n, 'G'>;
 
 // Erase functions
-template <intmax_t n>
-    requires limit_4<n>
-static constexpr auto ERASE_DISPLAY = details::escape<n, 'J'>;
+template <MOTION m>
+static constexpr auto ERASE_DISPLAY = details::escape<int(m), 'J'>;
 
-template <intmax_t n>
-    requires limit_4<n>
-static constexpr auto ERASE_LINE = details::escape<n, 'K'>;
+template <MOTION m>
+static constexpr auto ERASE_LINE = details::escape<int(m), 'K'>;
 
 // Scroll up/down
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto SCROLL_UP = details::escape<n, 'S'>;
 
-template <intmax_t n>
+template <int n>
     requires limit_pos<n>
 static constexpr auto SCROLL_DOWN = details::escape<n, 'T'>;
 
 // Set cursor to a specific position
-template <intmax_t n, intmax_t m>
+template <int n, int m>
     requires limit_pos<n> && limit_pos<m>
 static constexpr auto CURSOR_POSITION = details::escape<n, ';', m, 'H'>;
 
@@ -169,36 +170,52 @@ template <auto... val> static const char *FOREGROUND;
 template <auto... val> static const char *BACKGROUND;
 
 // palet colors
-template <COLOR color> static constexpr auto FOREGROUND<color> = details::escape<(intmax_t)color + 30, 'm'>;
-template <COLOR color> static constexpr auto BACKGROUND<color> = details::escape<(intmax_t)color + 40, 'm'>;
+template <COLOR color> static constexpr auto FOREGROUND<color> = details::escape<(int)color + 30, 'm'>;
+template <COLOR color> static constexpr auto BACKGROUND<color> = details::escape<(int)color + 40, 'm'>;
 
 // 256-color palette
-template <intmax_t idx>
+template <int idx>
     requires limit_256<idx>
-static constexpr auto FOREGROUND<idx> = details::escape<intmax_t(38), ';', intmax_t(5), ';', idx, 'm'>;
+static constexpr auto FOREGROUND<idx> = details::escape<int(38), ';', int(5), ';', idx, 'm'>;
 
-template <intmax_t idx>
+template <int idx>
     requires limit_256<idx>
-static constexpr auto BACKGROUND<idx> = details::escape<intmax_t(48), ';', intmax_t(5), ';', idx, 'm'>;
+static constexpr auto BACKGROUND<idx> = details::escape<int(48), ';', int(5), ';', idx, 'm'>;
 
 // RGB colors
-template <intmax_t R, intmax_t G, intmax_t B>
+template <int R, int G, int B>
     requires limit_256<R> && limit_256<G> && limit_256<B>
 static constexpr auto FOREGROUND<R, G, B> =
-    details::escape<intmax_t(38), ';', intmax_t(5), ';', R, ';', G, ';', B, 'm'>;
+    details::escape<int(38), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
 
-template <intmax_t R, intmax_t G, intmax_t B>
+template <int R, int G, int B>
     requires limit_256<R> && limit_256<G> && limit_256<B>
 static constexpr auto BACKGROUND<R, G, B> =
-    details::escape<intmax_t(48), ';', intmax_t(5), ';', R, ';', G, ';', B, 'm'>;
+    details::escape<int(48), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
 
 // Set/reset text decorators
-template <DECOR decor> static constexpr auto DECOR_SET = details::escape<(intmax_t)decor, 'm'>;
-template <DECOR decor> static constexpr auto DECOR_RESET = details::escape<(intmax_t)decor + 20, 'm'>;
+template <DECOR decor> static constexpr auto DECOR_SET = details::escape<(int)decor, 'm'>;
+template <DECOR decor> static constexpr auto DECOR_RESET = details::escape<(int)decor + 20, 'm'>;
 
-// Savle/load cursor position;
+// Save/load cursor position;
 static constexpr auto CURSOR_SAVE = details::escape<'s'>;
 static constexpr auto CURSOR_LOAD = details::escape<'u'>;
+
+// Set screen modes
+
+template <int n>
+    requires limit_pos<n>
+static constexpr auto SCREEN_MODE_SET = details::escape<'=', n, 'h'>;
+
+template <int n>
+    requires limit_pos<n>
+static constexpr auto SCREEN_MODE_RESET = details::escape<'=', n, 'l'>;
+
+// Private screen modes supported by most terminals
+
+// Save/load screen
+static constexpr auto SCREEN_SHOW = details::escape_literal<"?47h">;
+static constexpr auto SCREEN_HIDE = details::escape_literal<"?47l">;
 
 // Show/hide cursor
 static constexpr auto CURSOR_SHOW = details::escape_literal<"?25h">;
@@ -207,6 +224,11 @@ static constexpr auto CURSOR_HIDE = details::escape_literal<"?25l">;
 // Show/hide alternate buffer
 static constexpr auto ABUF_SHOW = details::escape_literal<"?1049h">;
 static constexpr auto ABUF_HIDE = details::escape_literal<"?1049l">;
+
+
+// Keyboard string TODO
+
+
 
 } // namespace ALEC
 
