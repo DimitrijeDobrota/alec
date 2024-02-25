@@ -116,119 +116,113 @@ concept limit_pos = n >= 0;
 // Move cursor up/down/frwd/back
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_UP = details::escape<n, 'A'>;
+static constexpr auto cursor_up_v = details::escape<n, 'A'>;
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_DOWN = details::escape<n, 'B'>;
+static constexpr auto cursor_down_v = details::escape<n, 'B'>;
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_FRWD = details::escape<n, 'C'>;
+static constexpr auto cursor_frwd_v = details::escape<n, 'C'>;
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_BACK = details::escape<n, 'D'>;
+static constexpr auto cursor_back_v = details::escape<n, 'D'>;
 
 // Move cursor to the next/prev line
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_LINE_NEXT = details::escape<n, 'E'>;
+static constexpr auto cursor_line_next_v = details::escape<n, 'E'>;
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_LINE_PREV = details::escape<n, 'F'>;
+static constexpr auto cursor_line_prev_v = details::escape<n, 'F'>;
 
 // Set cursor to specific column
 template <int n>
     requires limit_pos<n>
-static constexpr auto CURSOR_COLUMN = details::escape<n, 'G'>;
+static constexpr auto cursor_column_v = details::escape<n, 'G'>;
 
 // Erase functions
-template <MOTION m>
-static constexpr auto ERASE_DISPLAY = details::escape<int(m), 'J'>;
-
-template <MOTION m>
-static constexpr auto ERASE_LINE = details::escape<int(m), 'K'>;
+template <MOTION m> static constexpr auto erase_display_v = details::escape<int(m), 'J'>;
+template <MOTION m> static constexpr auto erase_line_v = details::escape<int(m), 'K'>;
 
 // Scroll up/down
 template <int n>
     requires limit_pos<n>
-static constexpr auto SCROLL_UP = details::escape<n, 'S'>;
+static constexpr auto scroll_up_v = details::escape<n, 'S'>;
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto SCROLL_DOWN = details::escape<n, 'T'>;
+static constexpr auto scroll_down_v = details::escape<n, 'T'>;
 
 // Set cursor to a specific position
 template <int n, int m>
     requires limit_pos<n> && limit_pos<m>
-static constexpr auto CURSOR_POSITION = details::escape<n, ';', m, 'H'>;
+static constexpr auto cursor_position_v = details::escape<n, ';', m, 'H'>;
 
 // color
-template <auto... val> static const char *FOREGROUND;
-template <auto... val> static const char *BACKGROUND;
+template <auto... val> static const char *foreground_v;
+template <auto... val> static const char *background_v;
 
 // palet colors
-template <COLOR color> static constexpr auto FOREGROUND<color> = details::escape<(int)color + 30, 'm'>;
-template <COLOR color> static constexpr auto BACKGROUND<color> = details::escape<(int)color + 40, 'm'>;
+template <COLOR color> static constexpr auto foreground_v<color> = details::escape<(int)color + 30, 'm'>;
+template <COLOR color> static constexpr auto background_v<color> = details::escape<(int)color + 40, 'm'>;
 
 // 256-color palette
 template <int idx>
     requires limit_256<idx>
-static constexpr auto FOREGROUND<idx> = details::escape<int(38), ';', int(5), ';', idx, 'm'>;
+static constexpr auto foreground_v<idx> = details::escape<int(38), ';', int(5), ';', idx, 'm'>;
 
 template <int idx>
     requires limit_256<idx>
-static constexpr auto BACKGROUND<idx> = details::escape<int(48), ';', int(5), ';', idx, 'm'>;
+static constexpr auto background_v<idx> = details::escape<int(48), ';', int(5), ';', idx, 'm'>;
 
 // RGB colors
 template <int R, int G, int B>
     requires limit_256<R> && limit_256<G> && limit_256<B>
-static constexpr auto FOREGROUND<R, G, B> =
+static constexpr auto foreground_v<R, G, B> =
     details::escape<int(38), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
 
 template <int R, int G, int B>
     requires limit_256<R> && limit_256<G> && limit_256<B>
-static constexpr auto BACKGROUND<R, G, B> =
+static constexpr auto background_v<R, G, B> =
     details::escape<int(48), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
 
 // Set/reset text decorators
-template <DECOR decor> static constexpr auto DECOR_SET = details::escape<(int)decor, 'm'>;
-template <DECOR decor> static constexpr auto DECOR_RESET = details::escape<(int)decor + 20, 'm'>;
+template <DECOR decor> static constexpr auto decor_set_v = details::escape<(int)decor, 'm'>;
+template <DECOR decor> static constexpr auto decor_reset_v = details::escape<(int)decor + 20, 'm'>;
 
 // Save/load cursor position;
-static constexpr auto CURSOR_SAVE = details::escape<'s'>;
-static constexpr auto CURSOR_LOAD = details::escape<'u'>;
+static constexpr auto cursor_save_v = details::escape<'s'>;
+static constexpr auto cursor_load_v = details::escape<'u'>;
 
 // Set screen modes
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto SCREEN_MODE_SET = details::escape<'=', n, 'h'>;
+static constexpr auto screen_mode_set_v = details::escape<'=', n, 'h'>;
 
 template <int n>
     requires limit_pos<n>
-static constexpr auto SCREEN_MODE_RESET = details::escape<'=', n, 'l'>;
+static constexpr auto screen_mode_reset_v = details::escape<'=', n, 'l'>;
 
 // Private screen modes supported by most terminals
 
 // Save/load screen
-static constexpr auto SCREEN_SHOW = details::escape_literal<"?47h">;
-static constexpr auto SCREEN_HIDE = details::escape_literal<"?47l">;
+static constexpr auto screen_show_v = details::escape_literal<"?47h">;
+static constexpr auto screen_hide_v = details::escape_literal<"?47l">;
 
 // Show/hide cursor
-static constexpr auto CURSOR_SHOW = details::escape_literal<"?25h">;
-static constexpr auto CURSOR_HIDE = details::escape_literal<"?25l">;
+static constexpr auto cursor_show_v = details::escape_literal<"?25h">;
+static constexpr auto cursor_hide_v = details::escape_literal<"?25l">;
 
 // Show/hide alternate buffer
-static constexpr auto ABUF_SHOW = details::escape_literal<"?1049h">;
-static constexpr auto ABUF_HIDE = details::escape_literal<"?1049l">;
-
+static constexpr auto abuf_show_v = details::escape_literal<"?1049h">;
+static constexpr auto abuf_hide_v = details::escape_literal<"?1049l">;
 
 // Keyboard string TODO
-
-
 
 } // namespace ALEC
 

@@ -6,23 +6,23 @@ using enum COLOR;
 using enum DECOR;
 
 int main(void) {
-    std::cout << ABUF_SHOW << CURSOR_HIDE;
+    std::cout << abuf_show_v << cursor_hide_v;
 
-    std::cout << CURSOR_POSITION<1, 1> << FOREGROUND<91> << "HELLO!\n";
+    std::cout << cursor_position_v<1, 1> << foreground_v<91> << "HELLO!\n";
 
-    std::cout << CURSOR_DOWN<3>;
-    std::cout << FOREGROUND<30> << BACKGROUND<196, 53, 64> << "WORLD!\n";
+    std::cout << cursor_down_v<3>;
+    std::cout << foreground_v<30> << background_v<196, 53, 64> << "WORLD!\n";
 
-    std::cout << BACKGROUND<DEFAULT> << "testing 1...\n" << FOREGROUND<DEFAULT>;
-    std::cout << DECOR_SET<INVERSE> << "testing 2...\n" << DECOR_RESET<INVERSE>;
+    std::cout << background_v<DEFAULT> << "testing 1...\n" << foreground_v<DEFAULT>;
+    std::cout << decor_set_v<INVERSE> << "testing 2...\n" << decor_reset_v<INVERSE>;
 
-    std::cout << CURSOR_UP<5> << "Hello there!" << CURSOR_SAVE;
-    std::cout << CURSOR_DOWN<10> << "General Kenobi!";
-    std::cout << CURSOR_POSITION<10, 40> << "no pain no gain" << CURSOR_LOAD << CURSOR_SHOW;
+    std::cout << cursor_up_v<5> << "Hello there!" << cursor_save_v;
+    std::cout << cursor_down_v<10> << "General Kenobi!";
+    std::cout << cursor_position_v<10, 40> << "no pain no gain" << cursor_load_v << cursor_show_v;
 
     getchar();
 
-    std::cout << ABUF_HIDE;
+    std::cout << abuf_hide_v;
 
     return 0;
 }
