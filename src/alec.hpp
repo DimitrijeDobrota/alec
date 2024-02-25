@@ -3,9 +3,10 @@
 
 #include <algorithm>
 #include <array>
+#include <assert.h>
 #include <cstdint>
+#include <string>
 #include <type_traits>
-
 namespace ALEC {
 
 enum CTRL {
@@ -59,7 +60,7 @@ template <std::size_t N> struct string_literal {
     char value[N];
 };
 
-template <auto... Args> struct escape_t {
+struct helper {
     template <typename T> static consteval std::size_t size(T val);
     template <typename T> static constexpr char *append(char *ptr, T val);
 
@@ -90,10 +91,22 @@ template <auto... Args> struct escape_t {
         return ptr;
     }
 
+    static const std::string make(auto... args) {
+        std::size_t len = (helper::size(args) + ... + 2);
+        std::string res(len, 'a');
+        res[0] = CTRL::ESC, res[1] = '[';
+        auto map = [ptr = res.data() + 2](auto const &s) mutable { ptr = helper::append(ptr, s); };
+        (map(args), ...);
+        res[len] = 0;
+        return res;
+    }
+};
+
+template <auto... Args> struct escape_t {
     static constexpr const auto value = []() {
-        constexpr std::size_t len = (size(Args) + ... + 2);
+        constexpr std::size_t len = (helper::size(Args) + ... + 2);
         std::array<char, len + 1> arr{CTRL::ESC, '[', 0};
-        auto map = [ptr = arr.data() + 2](auto const &s) mutable { ptr = append(ptr, s); };
+        auto map = [ptr = arr.data() + 2](auto const &s) mutable { ptr = helper::append(ptr, s); };
         (map(Args), ...);
         arr[len] = 0;
         return arr;
@@ -112,6 +125,8 @@ concept limit_256 = n >= 0 && n < 256;
 
 template <int n>
 concept limit_pos = n >= 0;
+
+/* Template compile-time variables */
 
 // Move cursor up/down/frwd/back
 template <int n>
@@ -221,6 +236,132 @@ static constexpr auto cursor_hide_v = details::escape_literal<"?25l">;
 // Show/hide alternate buffer
 static constexpr auto abuf_show_v = details::escape_literal<"?1049h">;
 static constexpr auto abuf_hide_v = details::escape_literal<"?1049l">;
+
+/* Run-time functions */
+
+// Move cursor up/down/frwd/back
+static constexpr auto cursor_up(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'A');
+}
+
+static constexpr auto cursor_down(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'B');
+}
+
+static constexpr auto cursor_frwd(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'C');
+}
+
+static constexpr auto cursor_back(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'D');
+}
+
+// Move cursor to the next/prev line
+static constexpr auto cursor_line_next(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'E');
+}
+
+static constexpr auto cursor_line_prev(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'F');
+}
+
+// Set cursor to specific column
+static constexpr auto cursor_column(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'G');
+}
+
+// Erase functions
+static constexpr auto erase_display(MOTION m) { return details::helper::make(int(m), 'J'); }
+static constexpr auto erase_line(MOTION m) { return details::helper::make(int(m), 'J'); }
+
+// Scroll up/down
+static constexpr auto scroll_up(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'S');
+}
+
+static constexpr auto scroll_down(int n) {
+    assert(n >= 0);
+    return details::helper::make(n, 'T');
+}
+
+// Set cursor to a specific position
+static constexpr auto cursor_position(int n, int m) {
+    assert(n >= 0 && m >= 0);
+    return details::helper::make(n, ';', m, 'H');
+}
+
+// color
+
+// palet colors
+static constexpr auto foreground(COLOR color) { return details::helper::make((int)color + 30, 'm'); }
+static constexpr auto background(COLOR color) { return details::helper::make((int)color + 40, 'm'); }
+
+// 256-color palette
+static constexpr auto foreground(int idx) {
+    assert(n >= 0 && n < 256);
+    return details::helper::make(38, ';', 5, ';', idx, 'm');
+}
+
+static constexpr auto background(int idx) {
+    assert(n >= 0 && n < 256);
+    return details::helper::make(48, ';', 5, ';', idx, 'm');
+}
+
+// RGB colors
+static constexpr auto foreground(int R, int G, int B) {
+    assert(R >= 0 && R < 256);
+    assert(G >= 0 && G < 256);
+    assert(B >= 0 && B < 256);
+    return details::helper::make(38, ';', 5, ';', R, ';', G, ';', B, 'm');
+}
+
+static constexpr auto background(int R, int G, int B) {
+    assert(R >= 0 && R < 256);
+    assert(G >= 0 && G < 256);
+    assert(B >= 0 && B < 256);
+    return details::helper::make(48, ';', 5, ';', R, ';', G, ';', B, 'm');
+}
+
+// Set/reset text decorators
+static constexpr auto decor_set(DECOR decor) { return details::helper::make((int)decor, 'm'); }
+static constexpr auto decor_reset(DECOR decor) { return details::helper::make((int)decor + 20, 'm'); }
+
+// Save/load cursor position;
+static constexpr auto cursor_save() { return cursor_save_v; }
+static constexpr auto cursor_load() { return cursor_load_v; }
+
+// Set screen modes
+static constexpr auto screen_mode_set(int n) {
+    assert(n >= 0);
+    return details::helper::make('=', n, 'h');
+}
+
+static constexpr auto screen_mode_reset(int n) {
+    assert(n >= 0);
+    return details::helper::make('=', n, 'l');
+}
+
+// Private screen modes supported by most terminals
+
+// Save/load screen
+static constexpr auto screen_show() { return screen_show_v; }
+static constexpr auto screen_hide() { return screen_hide_v; }
+
+// Show/hide cursor
+static constexpr auto cursor_show() { return cursor_show_v; }
+static constexpr auto cursor_hide() { return cursor_hide_v; }
+
+// Show/hide alternate buffer
+static constexpr auto abuf_show() { return abuf_show_v; }
+static constexpr auto abuf_hide() { return abuf_hide_v; }
 
 // Keyboard string TODO
 
