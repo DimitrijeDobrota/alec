@@ -121,42 +121,45 @@ template <details::string_literal... Strs> static constexpr auto escape_literal 
 // Tamplate parameter constraints
 
 template <int n>
-concept limit_256 = n >= 0 && n < 256;
+concept limit_256_v = n >= 0 && n < 256;
 
 template <int n>
-concept limit_pos = n >= 0;
+concept limit_pos_v = n >= 0;
+
+static inline bool limit_pos(int n) { return n >= 0; };
+static inline bool limit_256(int n) { return n >= 0 && n < 256; };
 
 /* Template compile-time variables */
 
 // Move cursor up/down/frwd/back
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_up_v = details::escape<n, 'A'>;
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_down_v = details::escape<n, 'B'>;
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_frwd_v = details::escape<n, 'C'>;
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_back_v = details::escape<n, 'D'>;
 
 // Move cursor to the next/prev line
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_line_next_v = details::escape<n, 'E'>;
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_line_prev_v = details::escape<n, 'F'>;
 
 // Set cursor to specific column
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto cursor_column_v = details::escape<n, 'G'>;
 
 // Erase functions
@@ -165,16 +168,16 @@ template <MOTION m> static constexpr auto erase_line_v = details::escape<int(m),
 
 // Scroll up/down
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto scroll_up_v = details::escape<n, 'S'>;
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto scroll_down_v = details::escape<n, 'T'>;
 
 // Set cursor to a specific position
 template <int n, int m>
-    requires limit_pos<n> && limit_pos<m>
+    requires limit_pos_v<n> && limit_pos_v<m>
 static constexpr auto cursor_position_v = details::escape<n, ';', m, 'H'>;
 
 // color
@@ -187,21 +190,21 @@ template <COLOR color> static constexpr auto background_v<color> = details::esca
 
 // 256-color palette
 template <int idx>
-    requires limit_256<idx>
+    requires limit_256_v<idx>
 static constexpr auto foreground_v<idx> = details::escape<int(38), ';', int(5), ';', idx, 'm'>;
 
 template <int idx>
-    requires limit_256<idx>
+    requires limit_256_v<idx>
 static constexpr auto background_v<idx> = details::escape<int(48), ';', int(5), ';', idx, 'm'>;
 
 // RGB colors
 template <int R, int G, int B>
-    requires limit_256<R> && limit_256<G> && limit_256<B>
+    requires limit_256_v<R> && limit_256_v<G> && limit_256_v<B>
 static constexpr auto foreground_v<R, G, B> =
     details::escape<int(38), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
 
 template <int R, int G, int B>
-    requires limit_256<R> && limit_256<G> && limit_256<B>
+    requires limit_256_v<R> && limit_256_v<G> && limit_256_v<B>
 static constexpr auto background_v<R, G, B> =
     details::escape<int(48), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
 
@@ -216,11 +219,11 @@ static constexpr auto cursor_load_v = details::escape<'u'>;
 // Set screen modes
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto screen_mode_set_v = details::escape<'=', n, 'h'>;
 
 template <int n>
-    requires limit_pos<n>
+    requires limit_pos_v<n>
 static constexpr auto screen_mode_reset_v = details::escape<'=', n, 'l'>;
 
 // Private screen modes supported by most terminals
@@ -241,39 +244,39 @@ static constexpr auto abuf_hide_v = details::escape_literal<"?1049l">;
 
 // Move cursor up/down/frwd/back
 static constexpr auto cursor_up(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'A');
 }
 
 static constexpr auto cursor_down(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'B');
 }
 
 static constexpr auto cursor_frwd(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'C');
 }
 
 static constexpr auto cursor_back(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'D');
 }
 
 // Move cursor to the next/prev line
 static constexpr auto cursor_line_next(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'E');
 }
 
 static constexpr auto cursor_line_prev(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'F');
 }
 
 // Set cursor to specific column
 static constexpr auto cursor_column(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'G');
 }
 
@@ -283,18 +286,19 @@ static constexpr auto erase_line(MOTION m) { return details::helper::make(int(m)
 
 // Scroll up/down
 static constexpr auto scroll_up(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'S');
 }
 
 static constexpr auto scroll_down(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make(n, 'T');
 }
 
 // Set cursor to a specific position
 static constexpr auto cursor_position(int n, int m) {
-    assert(n >= 0 && m >= 0);
+    assert(limit_pos(n));
+    assert(limit_pos(m));
     return details::helper::make(n, ';', m, 'H');
 }
 
@@ -306,27 +310,27 @@ static constexpr auto background(COLOR color) { return details::helper::make((in
 
 // 256-color palette
 static constexpr auto foreground(int idx) {
-    assert(n >= 0 && n < 256);
+    assert(limit_256(idx));
     return details::helper::make(38, ';', 5, ';', idx, 'm');
 }
 
 static constexpr auto background(int idx) {
-    assert(n >= 0 && n < 256);
+    assert(limit_256(idx));
     return details::helper::make(48, ';', 5, ';', idx, 'm');
 }
 
 // RGB colors
 static constexpr auto foreground(int R, int G, int B) {
-    assert(R >= 0 && R < 256);
-    assert(G >= 0 && G < 256);
-    assert(B >= 0 && B < 256);
+    assert(limit_256(R));
+    assert(limit_256(G));
+    assert(limit_256(B));
     return details::helper::make(38, ';', 5, ';', R, ';', G, ';', B, 'm');
 }
 
 static constexpr auto background(int R, int G, int B) {
-    assert(R >= 0 && R < 256);
-    assert(G >= 0 && G < 256);
-    assert(B >= 0 && B < 256);
+    assert(limit_256(R));
+    assert(limit_256(G));
+    assert(limit_256(B));
     return details::helper::make(48, ';', 5, ';', R, ';', G, ';', B, 'm');
 }
 
@@ -340,12 +344,12 @@ static constexpr auto cursor_load() { return cursor_load_v; }
 
 // Set screen modes
 static constexpr auto screen_mode_set(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make('=', n, 'h');
 }
 
 static constexpr auto screen_mode_reset(int n) {
-    assert(n >= 0);
+    assert(limit_pos(n));
     return details::helper::make('=', n, 'l');
 }
 
