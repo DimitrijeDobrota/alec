@@ -1,22 +1,22 @@
-
+              
 
 foreground
 int idx
 limit_256
 32, ';', 5, ';', idx, 'm'
-
+         
 
 background
 int idx
 limit_256
 42, ';', 5, ';', idx, 'm'
-
+            
 foreground
 int R, int G, int B
 limit_256
 38, ';', 5, ';', R, ';', G, ';', B, 'm'
 
-
+            
 
 background
 int R, int G, int B
@@ -26,7 +26,7 @@ limit_256
 
 foreground
 COLOR color
-
+             
 (int)color + 30, 'm'
 
 
@@ -36,4 +36,6 @@ COLOR color
 (int)color + 40, 'm'
 
 
-
+                    
+                    
+                    
