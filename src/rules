@@ -24,7 +24,7 @@ limit_256
 background
 int R, int G, int B
 limit_256
-38, ';', 5, ';', R, ';', G, ';', B, 'm'
+38       ,     ';', 5, ';', R, ';', G, ';', B, 'm'
 // comment
 foreground
 COLOR color

@@ -18,6 +18,8 @@ LINE_END (\n|\r|\r\n)
 
 ,                        { return COMMA; }
 [^,\n]*                  {
+    char *p = yytext + strlen(yytext) - 1;
+    while(isspace(*p)) *p-- = '\0';
 	while(*yytext && isspace(*yytext)) yytext++;
 	yylval.n = strdup(yytext); return LITERAL;
 }
