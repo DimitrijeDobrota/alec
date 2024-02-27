@@ -73,15 +73,24 @@ int main(const int argc, char *argv[]) {
         fclose(f);
     }
 
+    struct list *dupes = record_dupes(records);
+    record_print_dupes(dupes);
+
+    printf("\n/* Template compile-time variables */\n");
 	for(struct list *p = records; p; p = p->next) {
-		record_print_function((const struct record *)p->data);
+        const struct record * r = (const struct record *)p->data;
+		record_print_template(r, list_find(dupes, r->name, scmp));
 	}
 
+    printf("\n/* Run-time functions */\n");
 	for(struct list *p = records; p; p = p->next) {
-		record_print_template((const struct record *)p->data);
+        const struct record * r = (const struct record *)p->data;
+		record_print_function(r);
 	}
 
 	list_free(records, record_free);
+	list_free(dupes, 0);
+
 	yylex_destroy();
 }
 
@@ -138,13 +147,29 @@ void record_free(void *rp) {
 	free(r);
 }
 
+int list_find(struct list *l, void *data, cmp_f cmp) {
+    while(l) {
+        if(!cmp(l->data, data)) return 1;
+        l = l->next;
+    }
+    return 0;
+}
+
+void record_print_dupes(const struct list *l) {
+    while(l) {
+        printf("template <auto... val> static const char *%s_v;\n", l->data);
+        l = l->next;
+    }
+}
+
 void record_print_function(const struct record *r) {
+	struct list dummy = { 0 }, *c = &dummy;
+
     if(!r->recipe) { // comment
-        printf("%s\n", r->name);
+        printf("%s\n\n", r->name);
         return;
     }
 
-	struct list dummy, *c = &dummy;
 	printf("static constexpr auto %s(", r->name);
 	for(struct list *p = r->args; p; p = p->next) {
 		c = c->next = list_new(strchr(p->data, ' ') + 1, NULL);
@@ -155,7 +180,7 @@ void record_print_function(const struct record *r) {
 
 	if(r->rules) {
 		for(struct list *p = dummy.next; p; p = p->next) {
-			printf("\t assert(");
+			printf("\tassert(");
 			for(struct list *q = r->rules; q; q = q->next) {
 				printf("%s(%s)", q->data, p->data);
 				if(q->next) printf(" && ");
@@ -164,37 +189,44 @@ void record_print_function(const struct record *r) {
 		}
 	}
 
-	printf("\treturn details::helper::make(");
-	for(struct list *p = r->recipe; p; p = p->next) {
-		printf("%s", p->data);
-		if(p->next) printf(", ");
-	}
-	printf(");\n}\n\n");
+    if(r->args) {
+        printf("\treturn details::helper::make(");
+        for(struct list *p = r->recipe; p; p = p->next) {
+            printf("%s", p->data);
+            if(p->next) printf(", ");
+        }
+        printf(")");
+    } else {
+        printf("\treturn %s_v", r->name);
+    }
+    printf(";\n}\n\n");
 
 	list_free(dummy.next, NULL);
 }
 
-void record_print_template(const struct record *r) {
+void record_print_template(const struct record *r, int dup) {
+	struct list dummy = { 0 }, *c = &dummy;
+
     if(!r->recipe) { // comment
-        printf("%s\n", r->name);
+        printf("%s\n\n", r->name);
         return;
     }
 
-	struct list dummy, *c = &dummy;
-
-	printf("template <");
-	for(struct list *p = r->args; p; p = p->next) {
-		c = c->next = list_new(strchr(p->data, ' ') + 1, NULL);
-		printf("%s", p->data);
-		if(p->next) printf(", ");
-	}
-	printf(">\n");
+    if(r->args) {
+        printf("template <");
+        for(struct list *p = r->args; p; p = p->next) {
+            c = c->next = list_new(strchr(p->data, ' ') + 1, NULL);
+            printf("%s", p->data);
+            if(p->next) printf(", ");
+        }
+        printf(">\n");
+    }
 
 	if(r->rules) {
 		printf("\trequires ");
 		for(struct list *p = dummy.next; p; p = p->next) {
 			for(struct list *q = r->rules; q; q = q->next) {
-				printf("%s_v(%s)", q->data, p->data);
+				printf("%s_v<%s>", q->data, p->data);
 				if(q->next) printf(" && ");
 			}
 			if(p->next) printf(" && ");
@@ -202,14 +234,47 @@ void record_print_template(const struct record *r) {
 		printf("\n");
 	}
 
-	printf("static constexpr auto %s_v\n\t = details::escape<", r->name);
-	for(struct list *p = r->recipe; p; p = p->next) {
-		printf("%s", p->data);
-		if(p->next) printf(", ");
-	}
-	printf(">;\n\n");
+	printf("static constexpr auto %s_v", r->name);
+    if(dup) {
+        printf("<");
+        for(struct list *p = dummy.next; p; p = p->next) {
+            printf("%s", p->data);
+            if(p->next) printf(", ");
+        }
+        printf(">");
+    }
+
+    if(!r->recipe->next && r->recipe->data[0] == '"') {
+        // string literal
+        printf("\n\t = details::escape_literal<%s>;", r->recipe->data);
+    } else {
+        printf("\n\t = details::escape<");
+        for(struct list *p = r->recipe; p; p = p->next) {
+            printf("%s", p->data);
+            if(p->next) printf(", ");
+        }
+        printf(">;");
+    }
+    printf("\n\n");
 
 	list_free(dummy.next, NULL);
+}
+
+int scmp(const void *a, const void *b) {
+    return strcmp((const char *)a, (const char *)b);
+}
+
+struct list *record_dupes(struct list *l) {
+	struct list *s = NULL, *d = NULL;
+
+	for(struct list *p = records; p; p = p->next) {
+		const struct record * r = (const struct record *)p->data;
+        if(!list_find(s, r->name, scmp)) s = list_new(r->name, s);
+        else if(!list_find(d, r->name, scmp)) d = list_new(r->name, d);
+	}
+
+	list_free(s, NULL);
+    return d;
 }
 
 void yyerror(char *s, ...) {

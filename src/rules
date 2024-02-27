@@ -1,44 +1,183 @@
-              
-// hello
+// Move cursor up/down/frwd/back
 
-foreground
-int idx
-limit_256
-32, ';', 5, ';', idx, 'm'
-         
+    cursor_up
+    int n
+    limit_pos
+    n, 'A'
+
+    cursor_down
+    int n
+    limit_pos
+    n, 'B'
+
+    cursor_frwd
+    int n
+    limit_pos
+    n, 'C'
+
+    cursor_back
+    int n
+    limit_pos
+    n, 'D'
+
+// Move cursor to the next/prev line
+
+    cursor_line_next
+    int n
+    limit_pos
+    n, 'E'
+
+    cursor_line_prev
+    int n
+    limit_pos
+    n, 'F'
+
+// Set cursor to specific column
+
+    cursor_column
+    int n
+    limit_pos
+    n, 'G'
+
+// Erase functions
+
+    erase_display
+    MOTION m
+    |
+    (int)m, 'J'
+
+    erase_line
+    MOTION m
+    |
+    (int)m, 'K'
+
+// Scroll up/down
+
+    scroll_up
+    int n
+    limit_pos
+    n, 'S'
+
+    scroll_down
+    int n
+    limit_pos
+    n, 'T'
+
+// Set cursor to a specific position
+
+    cursor_position
+    int n, int m
+    limit_pos
+    n, ';', m, 'H'
+
+// color
+
+// palet colors
+
+    foreground
+    COLOR color
+    |
+    (int)color + 30, 'm'
+
+    background
+    COLOR color
+    |
+    (int)color + 40, 'm'
+
+// 256-color palette
+
+    foreground
+    int idx
+    limit_256
+    38, ';', 5, ';', idx, 'm'
 
     background
     int idx
     limit_256
-    42, ';', 5, ';', idx, 'm'
-                
+    48, ';', 5, ';', idx, 'm'
+
+// RGB colors
+
     foreground
     int R, int G, int B
     limit_256
     38, ';', 5, ';', R, ';', G, ';', B, 'm'
 
-            
-    // world
-    // world
+    background
+    int R, int G, int B
+    limit_256
+    48, ';', 5, ';', R, ';', G, ';', B, 'm'
 
-background
-int R, int G, int B
-limit_256
-38       ,     ';', 5, ';', R, ';', G, ';', B, 'm'
-// comment
-foreground
-COLOR color
-             
-(int)color + 30, 'm'
+// Set/reset text decorators
 
+    decor_set
+    DECOR decor
+    |
+    (int)decor, 'm'
 
-// hello there
-background
-COLOR color
+    decor_reset
+    DECOR decor
+    |
+    (int)decor + 20, 'm'
 
-(int)color + 40, 'm'
+// Save/load cursor position;
 
+    cursor_save
+    |
+    |
+    's'
 
-                    
-                    
-                    
+    cursor_load
+    |
+    |
+    'u'
+
+// Set screen modes
+
+    screen_mode_set
+    int n
+    limit_pos
+    '=', n, 'h'
+
+    screen_mode_reset
+    int n
+    limit_pos
+    '=', n, 'l'
+
+// Private screen modes supported by most terminals
+
+// Save/load screen
+
+    screen_show
+    |
+    |
+    "?47h"
+
+    screen_hide
+    |
+    |
+    "?47l"
+
+// Show/hide cursor
+
+    cursor_show
+    |
+    |
+    "?25h"
+
+    cursor_hide
+    |
+    |
+    "?25l"
+
+// Show/hide alternate buffer
+
+    abuf_show
+    |
+    |
+    "?1049h"
+
+    abuf_hide
+    |
+    |
+    "?1049l"
