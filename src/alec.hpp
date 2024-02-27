@@ -163,8 +163,8 @@ template <int n>
 static constexpr auto cursor_column_v = details::escape<n, 'G'>;
 
 // Erase functions
-template <MOTION m> static constexpr auto erase_display_v = details::escape<int(m), 'J'>;
-template <MOTION m> static constexpr auto erase_line_v = details::escape<int(m), 'K'>;
+template <MOTION m> static constexpr auto erase_display_v = details::escape<(int)m, 'J'>;
+template <MOTION m> static constexpr auto erase_line_v = details::escape<(int)m, 'K'>;
 
 // Scroll up/down
 template <int n>
@@ -191,22 +191,22 @@ template <COLOR color> static constexpr auto background_v<color> = details::esca
 // 256-color palette
 template <int idx>
     requires limit_256_v<idx>
-static constexpr auto foreground_v<idx> = details::escape<int(38), ';', int(5), ';', idx, 'm'>;
+static constexpr auto foreground_v<idx> = details::escape<38, ';', 5, ';', idx, 'm'>;
 
 template <int idx>
     requires limit_256_v<idx>
-static constexpr auto background_v<idx> = details::escape<int(48), ';', int(5), ';', idx, 'm'>;
+static constexpr auto background_v<idx> = details::escape<48, ';', 5, ';', idx, 'm'>;
 
 // RGB colors
 template <int R, int G, int B>
     requires limit_256_v<R> && limit_256_v<G> && limit_256_v<B>
 static constexpr auto foreground_v<R, G, B> =
-    details::escape<int(38), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
+    details::escape<38, ';', 5, ';', R, ';', G, ';', B, 'm'>;
 
 template <int R, int G, int B>
     requires limit_256_v<R> && limit_256_v<G> && limit_256_v<B>
 static constexpr auto background_v<R, G, B> =
-    details::escape<int(48), ';', int(5), ';', R, ';', G, ';', B, 'm'>;
+    details::escape<48, ';', 5, ';', R, ';', G, ';', B, 'm'>;
 
 // Set/reset text decorators
 template <DECOR decor> static constexpr auto decor_set_v = details::escape<(int)decor, 'm'>;
@@ -281,8 +281,8 @@ static constexpr auto cursor_column(int n) {
 }
 
 // Erase functions
-static constexpr auto erase_display(MOTION m) { return details::helper::make(int(m), 'J'); }
-static constexpr auto erase_line(MOTION m) { return details::helper::make(int(m), 'J'); }
+static constexpr auto erase_display(MOTION m) { return details::helper::make((int)m, 'J'); }
+static constexpr auto erase_line(MOTION m) { return details::helper::make((int)m, 'K'); }
 
 // Scroll up/down
 static constexpr auto scroll_up(int n) {
