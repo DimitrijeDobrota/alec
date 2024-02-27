@@ -27,16 +27,21 @@
 
 %%
 
-document: record              { records = list_new((char *)$1, records); }
-        | record EOL document { records = list_new((char *)$1, records); }
+document: %empty
+        | EOL document 
+        | record document { records = list_new((char *)$1, records); }
+        ;
 
 record: name list list list { $$ = record_new($1, $2, $3, $4); }
+      ;
 
 name: LITERAL EOL   { $$ = $1; }
+    ;
 
 list: EOL                { $$ = NULL; }
     | LITERAL EOL        { $$ = list_new($1, NULL); }
     | LITERAL COMMA list { $$ = list_new($1, $3); }
+    ;
 
 %%
 
