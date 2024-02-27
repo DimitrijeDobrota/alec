@@ -7,7 +7,9 @@
 	void yyrestart(FILE *);
 	int yylex_destroy(void);
 
-	struct list *records;
+	struct list *records = NULL;
+	struct list *before = NULL;
+	struct list *after = NULL;
 %}
 
 %union {
@@ -16,8 +18,8 @@
     char *n;
 }
 
-%token <n> LITERAL COMMENT
-%token EOL COMMA
+%token <n> LITERAL COMMENT BEFORE AFTER
+%token EOL COMMA SWITCH
 
 %type <r> record
 %type <l> list
@@ -27,15 +29,23 @@
 
 %%
 
-document: %empty
-        | EOL document 
-        | record document { records = list_new((char *)$1, records); }
-        | COMMENT document {
-            records = list_new((char *)record_new(
-                $1, NULL, NULL, NULL
-            ), records);
-        }
-        ;
+document: before SWITCH mid SWITCH after
+
+before: %empty
+      | BEFORE before { before = list_new($1, before); }
+
+after: %empty
+     | AFTER after { after = list_new($1, after); }
+
+mid: %empty
+   | EOL mid 
+   | record mid { records = list_new((char *)$1, records); }
+   | COMMENT mid {
+       records = list_new((char *)record_new(
+           $1, NULL, NULL, NULL
+       ), records);
+   }
+   ;
 
 record: name list list list { $$ = record_new($1, $2, $3, $4); }
       ;
@@ -73,6 +83,12 @@ int main(const int argc, char *argv[]) {
         fclose(f);
     }
 
+
+    // print before section
+	for(struct list *p = before; p; p = p->next) {
+		printf("%s", p->data);
+	}
+
     struct list *dupes = record_dupes(records);
     record_print_dupes(dupes);
 
@@ -86,6 +102,11 @@ int main(const int argc, char *argv[]) {
 	for(struct list *p = records; p; p = p->next) {
         const struct record * r = (const struct record *)p->data;
 		record_print_function(r);
+	}
+
+    // print after section
+	for(struct list *p = after; p; p = p->next) {
+		printf("%s", p->data);
 	}
 
 	list_free(records, record_free);
