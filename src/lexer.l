@@ -12,6 +12,10 @@ LINE_END (\n|\r|\r\n)
 
 {LINE_END}               { return EOL; }
 ^[\t ]*{LINE_END}        { return EOL; }
+^[\t ]*
+
+^[\t ]*"//".* { yylval.n = strdup(yytext); return COMMENT; }
+
 ,                        { return COMMA; }
 [^,\n]*                  {
 	while(*yytext && isspace(*yytext)) yytext++;

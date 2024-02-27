@@ -16,7 +16,7 @@
     char *n;
 }
 
-%token <n> LITERAL
+%token <n> LITERAL COMMENT
 %token EOL COMMA
 
 %type <r> record
@@ -30,6 +30,11 @@
 document: %empty
         | EOL document 
         | record document { records = list_new((char *)$1, records); }
+        | COMMENT document {
+            records = list_new((char *)record_new(
+                $1, NULL, NULL, NULL
+            ), records);
+        }
         ;
 
 record: name list list list { $$ = record_new($1, $2, $3, $4); }
@@ -134,6 +139,11 @@ void record_free(void *rp) {
 }
 
 void record_print_function(const struct record *r) {
+    if(!r->recipe) { // comment
+        printf("%s\n", r->name);
+        return;
+    }
+
 	struct list dummy, *c = &dummy;
 	printf("static constexpr auto %s(", r->name);
 	for(struct list *p = r->args; p; p = p->next) {
@@ -165,6 +175,11 @@ void record_print_function(const struct record *r) {
 }
 
 void record_print_template(const struct record *r) {
+    if(!r->recipe) { // comment
+        printf("%s\n", r->name);
+        return;
+    }
+
 	struct list dummy, *c = &dummy;
 
 	printf("template <");
