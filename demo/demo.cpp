@@ -1,12 +1,12 @@
 #include "alec.hpp"
 #include <iostream>
 
-using namespace ALEC;
-using enum COLOR;
-using enum DECOR;
+using namespace alec;
+using enum Color;
+using enum Decor;
 
 int main(void) {
-    std::cout << abuf_show_v << cursor_hide_v;
+    std::cout << abuf_enable_v << cursor_hide_v;
 
     std::cout << cursor_position_v<1, 1> << foreground_v<91> << "HELLO!\n";
 
@@ -18,11 +18,11 @@ int main(void) {
 
     std::cout << cursor_up_v<5> << "Hello there!" << cursor_save_v;
     std::cout << cursor_down_v<10> << "General Kenobi!";
-    std::cout << cursor_position_v<10, 40> << "no pain no gain" << cursor_load_v << cursor_show_v;
+    std::cout << cursor_position_v<10, 40> << "no pain no gain" << cursor_restore_v << cursor_show_v;
 
     getchar();
 
-    std::cout << abuf_hide_v;
+    std::cout << abuf_disable_v;
 
     return 0;
 }

@@ -90,15 +90,15 @@ int main(const int argc, char *argv[]) {
 	}
 
     struct list *dupes = record_dupes(records);
-    record_print_dupes(dupes);
 
-    printf("\n/* Template compile-time variables */\n");
+    printf("\n/* Template compile-time variables */\n\n");
+    record_print_dupes(dupes);
 	for(struct list *p = records; p; p = p->next) {
         const struct record * r = (const struct record *)p->data;
 		record_print_template(r, list_find(dupes, r->name, scmp));
 	}
 
-    printf("\n/* Run-time functions */\n");
+    printf("\n/* Run-time functions */\n\n");
 	for(struct list *p = records; p; p = p->next) {
         const struct record * r = (const struct record *)p->data;
 		record_print_function(r);
@@ -181,6 +181,7 @@ void record_print_dupes(const struct list *l) {
         printf("template <auto... val> static const char *%s_v;\n", l->data);
         l = l->next;
     }
+    printf("\n");
 }
 
 void record_print_function(const struct record *r) {

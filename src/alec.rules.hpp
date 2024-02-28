@@ -7,9 +7,11 @@
 #include <cstdint>
 #include <string>
 #include <type_traits>
-namespace ALEC {
 
-enum CTRL {
+
+namespace alec {
+
+enum Ctrl {
     BELL = 0x07,
     BS = 0x08,
     HT = 0x09,
@@ -21,7 +23,7 @@ enum CTRL {
     DEL = 0x7F,
 };
 
-enum class COLOR {
+enum class Color {
     BLACK = 0,
     RED = 1,
     GREEN = 2,
@@ -33,7 +35,7 @@ enum class COLOR {
     DEFAULT = 9,
 };
 
-enum class DECOR {
+enum class Decor {
     RESET = 0,
     BOLD = 1,
     DIM = 2,
@@ -45,7 +47,7 @@ enum class DECOR {
     STRIKE = 9,
 };
 
-enum class MOTION {
+enum class Motion {
     END = 0,
     BEGIN = 1,
     WHOLE = 2,
@@ -94,7 +96,7 @@ struct helper {
     static const std::string make(auto... args) {
         std::size_t len = (helper::size(args) + ... + 2);
         std::string res(len, 'a');
-        res[0] = CTRL::ESC, res[1] = '[';
+        res[0] = Ctrl::ESC, res[1] = '[';
         auto map = [ptr = res.data() + 2](auto const &s) mutable { ptr = helper::append(ptr, s); };
         (map(args), ...);
         res[len] = 0;
@@ -105,7 +107,7 @@ struct helper {
 template <auto... Args> struct escape_t {
     static constexpr const auto value = []() {
         constexpr std::size_t len = (helper::size(Args) + ... + 2);
-        std::array<char, len + 1> arr{CTRL::ESC, '[', 0};
+        std::array<char, len + 1> arr{Ctrl::ESC, '[', 0};
         auto map = [ptr = arr.data() + 2](auto const &s) mutable { ptr = helper::append(ptr, s); };
         (map(Args), ...);
         arr[len] = 0;
@@ -175,12 +177,12 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
 // Erase functions
 
     erase_display
-    MOTION m
+    Motion m
     |
     (int)m, 'J'
 
     erase_line
-    MOTION m
+    Motion m
     |
     (int)m, 'K'
 
@@ -208,12 +210,12 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
 // palet colors
 
     foreground
-    COLOR color
+    Color color
     |
     (int)color + 30, 'm'
 
     background
-    COLOR color
+    Color color
     |
     (int)color + 40, 'm'
 
@@ -234,33 +236,33 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
     foreground
     int R, int G, int B
     limit_256
-    38, ';', 5, ';', R, ';', G, ';', B, 'm'
+    38, ';', 2, ';', R, ';', G, ';', B, 'm'
 
     background
     int R, int G, int B
     limit_256
-    48, ';', 5, ';', R, ';', G, ';', B, 'm'
+    48, ';', 2, ';', R, ';', G, ';', B, 'm'
 
 // Set/reset text decorators
 
     decor_set
-    DECOR decor
+    Decor decor
     |
     (int)decor, 'm'
 
     decor_reset
-    DECOR decor
+    Decor decor
     |
     (int)decor + 20, 'm'
 
-// Save/load cursor position;
+// Save/restore cursor position;
 
     cursor_save
     |
     |
     's'
 
-    cursor_load
+    cursor_restore
     |
     |
     'u'
@@ -279,14 +281,14 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
 
 // Private screen modes supported by most terminals
 
-// Save/load screen
+// Save/restore screen
 
-    screen_show
+    screen_save
     |
     |
     "?47h"
 
-    screen_hide
+    screen_restore
     |
     |
     "?47l"
@@ -303,17 +305,29 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
     |
     "?25l"
 
-// Show/hide alternate buffer
+// Enable/disable alternate buffer
 
-    abuf_show
+    abuf_enable
     |
     |
     "?1049h"
 
-    abuf_hide
+    abuf_disable
     |
     |
     "?1049l"
+
+// Enable/disable bracketed paste mode
+
+    paste_enable
+    |
+    |
+    "?2004h"
+
+    paste_disable
+    |
+    |
+    "?2004l"
 
 %%
 
