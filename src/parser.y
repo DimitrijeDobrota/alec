@@ -2,6 +2,11 @@
     #include "generator.h"
     #include <stdarg.h>
 
+    #define MALLOC(x) do {                          \
+        x = malloc(sizeof(*x));                     \
+        if(!x) yyerror("out of space"), exit(1);    \
+    } while(0);
+
 	int yylex(void);
 	int yyparse(void);
 	void yyrestart(FILE *);
@@ -90,13 +95,14 @@ int main(const int argc, char *argv[]) {
 		printf("%s", p->data);
 	}
 
-    list_t *dupes = record_dupes(&records);
+    list_t dupes = { 0 };
+    record_dupes(&dupes, &records);
 
     printf("\n/* Template compile-time variables */\n\n");
-    record_print_dupes(dupes);
+    record_print_dupes(&dupes);
 	for(node_t *p = records.head; p; p = p->next) {
         const struct record * r = (const struct record *)p->data;
-		record_print_template(r, list_find(dupes, r->name, scmp));
+		record_print_template(r, list_find(&dupes, r->name, scmp));
 	}
 
     printf("\n/* Run-time functions */\n\n");
@@ -110,8 +116,7 @@ int main(const int argc, char *argv[]) {
 		printf("%s", p->data);
 	}
 
-	list_free(dupes, 0);
-    free(dupes);
+	list_free(&dupes, 0);
 
 	list_free(&before, free);
 	list_free(&records, record_free);
@@ -121,13 +126,9 @@ int main(const int argc, char *argv[]) {
 }
 
 node_t *node_new(char *data) {
-    node_t *n = malloc(sizeof(node_t));
+    node_t *n;
 
-    if(!n) {
-        yyerror("out of space");
-        exit(1);
-    }
-
+    MALLOC(n);
     *n = (node_t) {
         .data = data,
         .next = NULL,
@@ -137,13 +138,10 @@ node_t *node_new(char *data) {
 }
 
 list_t *list_new(char *data) {
-    list_t *l = calloc(1, sizeof(list_t));
+    list_t *l;
 
-    if(!l) {
-        yyerror("out of space");
-        exit(1);
-    }
-
+    MALLOC(l);
+    *l = (list_t) { 0 };
     if(data) list_append(l, node_new(data));
 
     return l;
@@ -167,13 +165,9 @@ void list_append(list_t *l, node_t *n) {
 }
 
 struct record *record_new(char *name, list_t *args, list_t *rules, list_t *recipe){
-	struct record* rec = malloc(sizeof(struct record));
+	struct record* rec;
 
-	if(!rec) {
-		yyerror("out of space");
-		exit(1);
-	}
-
+    MALLOC(rec);
 	*rec = (struct record) {
 		.name = name,
 		.args = args,
@@ -314,8 +308,7 @@ int scmp(const void *a, const void *b) {
     return strcmp((const char *)a, (const char *)b);
 }
 
-list_t *record_dupes(list_t *l) {
-    list_t *d = list_new(NULL);
+void record_dupes(list_t *d, list_t *l) {
 	list_t s = { 0 };
 
 	for(node_t *p = records.head; p; p = p->next) {
@@ -325,7 +318,6 @@ list_t *record_dupes(list_t *l) {
 	}
 
 	list_free(&s, NULL);
-    return d;
 }
 
 void yyerror(char *s, ...) {

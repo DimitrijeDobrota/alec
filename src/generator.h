@@ -44,7 +44,7 @@ int list_find(list_t *l, void *data, cmp_f cmp);
 struct record *record_new(char *name, list_t *args, list_t *rules, list_t *recipe);
 void record_free(void *rp);
 
-list_t *record_dupes(list_t *l);
+void record_dupes(list_t *d, list_t *l);
 
 void record_print_template(const struct record *r, int dup);
 void record_print_function(const struct record *r);
