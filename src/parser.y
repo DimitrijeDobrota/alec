@@ -109,8 +109,11 @@ int main(const int argc, char *argv[]) {
 		printf("%s", p->data);
 	}
 
-	list_free(records, record_free);
 	list_free(dupes, 0);
+
+	list_free(before, free);
+	list_free(records, record_free);
+	list_free(after, free);
 
 	yylex_destroy();
 }
