@@ -14,7 +14,7 @@ FLEX_TARGET(LEXER lexer.l "${LEXER_OUT}" DEFINES_FILE "${PARSER_DIR}/scanner.h" 
 BISON_TARGET(PARSER parser.y "${PARSER_OUT}" DEFINES_FILE "${PARSER_DIR}/parser.h" COMPILE_FLAGS "${FLAGS}")
 ADD_FLEX_BISON_DEPENDENCY(LEXER PARSER)
 
-add_executable(generator "${LEXER_OUT}" "${PARSER_OUT}")
+add_executable(generator "${LEXER_OUT}" "${PARSER_OUT}" generator.c)
 target_include_directories(generator PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(GENERATE_OUT "${CMAKE_BINARY_DIR}/bin")
