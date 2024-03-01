@@ -140,6 +140,10 @@ Configuration file `alec.rules.hpp` is used to customize the output of
 output file whilst the second section contains rules for generating template
 and function code.
 
+* Rules can be separated by an arbitrary number of blank lines.
+* Everything can have arbitrary indentation that is not carried to the resulting file.
+* There could be C-style comments that are copied to the resulting file.
+
 Each rule consists of 4 lines:
 1. Name: name of the generated function, must be valid C++ name
 2. Parameters: list of `type name` pairs separated by a comma
@@ -147,12 +151,7 @@ Each rule consists of 4 lines:
 4. Rules: list of chars and ints (or expressions producing them) separated by a
 comma, or a single string literal
 
-> It is recommended to use single `|` character in place of an empty list rule
-for better readability
-
-* Rules can be separated by an arbitrary number of blank lines.
-* Everything can have arbitrary indentation that is not carried to the resulting file.
-* There can also be C-style comments that are copied to the resulting file.
+> You *must* use `|` character in place of empty list rule
 
 ### Constraints
 

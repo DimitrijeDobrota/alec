@@ -8,35 +8,46 @@
 extern int yylineno;
 void yyerror(char *s, ...);
 
-struct list {
+typedef struct node node_t;
+typedef struct list list_t;
+
+struct node {
     char *data;
-    struct list *next;
+    node_t *next;
+};
+
+struct list {
+    node_t *head;
+    node_t *tail;
 };
 
 struct record {
     char *name;
-    struct list *args;
-    struct list *rules;
-    struct list *recipe;
+    list_t *args;
+    list_t *rules;
+    list_t *recipe;
 };
 
-typedef void(*free_f)(void *);
-typedef int(*cmp_f)(const void *, const void *);
+typedef void (*free_f)(void *);
+typedef int (*cmp_f)(const void *, const void *);
 
 int scmp(const void *a, const void *b);
 
-struct list *list_new(char *data, struct list *list);
-void list_free(struct list *l, free_f free_data);
+node_t *node_new(char *data);
 
-int list_find(struct list *l, void *data, cmp_f cmp);
+list_t *list_new(char *data);
+void list_free(list_t *l, free_f free_data);
+void list_append(list_t *l, node_t *n);
 
-struct record *record_new(char *name, struct list *args, struct list *rules, struct list *recipe);
+int list_find(list_t *l, void *data, cmp_f cmp);
+
+struct record *record_new(char *name, list_t *args, list_t *rules, list_t *recipe);
 void record_free(void *rp);
 
-struct list *record_dupes(struct list *l);
+list_t *record_dupes(list_t *l);
 
 void record_print_template(const struct record *r, int dup);
 void record_print_function(const struct record *r);
-void record_print_dupes(const struct list *l);
+void record_print_dupes(const list_t *l);
 
 #endif

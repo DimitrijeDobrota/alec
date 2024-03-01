@@ -19,7 +19,7 @@ LINE_END (\n|\r|\r\n)
 
 <GEN>{LINE_END}                  { return EOL; }
 <GEN>^[\t ]*{LINE_END}           { return EOL; }
-<GEN>^[\t ]*\|*[\t ]*{LINE_END}  { return EOL; }
+<GEN>^[\t ]*\|*[\t ]*{LINE_END}  { return EMPTY; }
 
 <GEN>^[\t ]*"//".* { yylval.n = strdup(yytext); return COMMENT; }
 
