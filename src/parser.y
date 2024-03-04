@@ -4,7 +4,7 @@
 }
 
 %define api.value.type union
-%token <char *> n LITERAL COMMENT BEFORE AFTER
+%token <char *> n LITERAL COMMENT PROLOGUE EPILOGUE
 
 %type <record_t *> record
 %type <list_t *> list items
@@ -19,8 +19,8 @@
 	int yylex_destroy(void);
 
 	extern list_t records;
-	extern list_t after;
-	extern list_t before;
+	extern list_t epilogue;
+	extern list_t prologue;
 }
 
 
@@ -28,19 +28,19 @@
 
 %%
 
-document: before mid after
+document: prologue grammar epilogue
 
-before: %empty
-      | before BEFORE { list_append(&before, node_new($2)); }
+prologue: %empty
+      | prologue PROLOGUE { list_append(&prologue, node_new($2)); }
       ;
 
-after: SWITCH
-     | after AFTER { list_append(&after, node_new($2)); }
+epilogue: SWITCH
+     | epilogue EPILOGUE { list_append(&epilogue, node_new($2)); }
      ;
 
-mid: SWITCH
-   | mid EOL
-   | mid record { list_append(&records, node_new((char *)$2)); }
+grammar: SWITCH
+   | grammar EOL
+   | grammar record { list_append(&records, node_new((char *)$2)); }
    ;
 
 record: name list list list { $$ = record_new($1, $2, $3, $4); }

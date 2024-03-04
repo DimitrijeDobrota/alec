@@ -15,7 +15,7 @@ LINE_END (\n|\r|\r\n)
 
 
 "%%"{LINE_END}     { BEGIN GEN; return SWITCH; }
-.*{LINE_END}       { yylval.n = strdup(yytext); return BEFORE; }
+.*{LINE_END}       { yylval.n = strdup(yytext); return PROLOGUE; }
 
 <GEN>{LINE_END}                  { return EOL; }
 <GEN>^[\t ]*{LINE_END}           { return EOL; }
@@ -34,7 +34,7 @@ LINE_END (\n|\r|\r\n)
 
 <GEN>"%%"{LINE_END}        { BEGIN LAST; return SWITCH; }
 
-<LAST>.*{LINE_END}       { yylval.n = strdup(yytext); return AFTER; }
+<LAST>.*{LINE_END}       { yylval.n = strdup(yytext); return EPILOGUE; }
 
 %%
 

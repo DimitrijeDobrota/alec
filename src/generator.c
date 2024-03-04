@@ -12,8 +12,8 @@ int yydebug = 1;
 #endif
 
 list_t records = {0};
-list_t after = {0};
-list_t before = {0};
+list_t epilogue = {0};
+list_t prologue = {0};
 
 int main(const int argc, char *argv[]) {
     if (argc < 2) {
@@ -34,8 +34,8 @@ int main(const int argc, char *argv[]) {
         fclose(f);
     }
 
-    // print before section
-    for (node_t *p = before.head; p; p = p->next) {
+    // print prologue section
+    for (node_t *p = prologue.head; p; p = p->next) {
         printf("%s", p->data);
     }
 
@@ -55,16 +55,16 @@ int main(const int argc, char *argv[]) {
         record_print_function(r);
     }
 
-    // print after section
-    for (node_t *p = after.head; p; p = p->next) {
+    // print epilogue section
+    for (node_t *p = epilogue.head; p; p = p->next) {
         printf("%s", p->data);
     }
 
     list_free(&dupes, 0);
 
-    list_free(&before, free);
+    list_free(&prologue, free);
     list_free(&records, record_free);
-    list_free(&after, free);
+    list_free(&epilogue, free);
 
     yylex_destroy();
 }

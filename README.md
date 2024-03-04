@@ -136,9 +136,9 @@ and don't need to be called.
 
 Configuration file `alec.rules.hpp` is used to customize the output of
 `alec.hpp` file. Similarly to Flex and Bison, configuration files needs to have
-3 sections separated by `%%`. First and last sections are copied as-is to the
-output file whilst the second section contains rules for generating template
-and function code.
+3 sections separated by `%%`: prologue, grammar and epilogue. Prologue and
+epilogue are copied as-is to the output file whilst the grammar section
+contains rules for generating template and function code.
 
 * Rules can be separated by an arbitrary number of blank lines.
 * Everything can have arbitrary indentation that is not carried to the resulting file.
@@ -155,8 +155,7 @@ comma, or a single string literal
 
 ### Constraints
 
-* All constraints used in code generation must be defined in the first section of
-the config file.
+* All constraints used in code generation must be defined in the prologue
 * Every constraint listed will be applied to all of the arguments one by one.
 * Every constraint has to have a function and template concept variant with the
 same name, but suffix _v for the template one.
