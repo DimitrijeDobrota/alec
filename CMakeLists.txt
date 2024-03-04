@@ -3,7 +3,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(
     Alec
-	VERSION 1.0.3
+	VERSION 1.0.4
     DESCRIPTION "Abstraction Layer for Escape Codes"
 	HOMEPAGE_URL https://git.dimitrijedobrota.com/alec.git
     LANGUAGES C CXX

@@ -3,11 +3,14 @@
     #include <stdarg.h>
 }
 
-%union {
-    struct record *r;
-    list_t *l;
-    char *n;
-}
+%define api.value.type union
+%token <char *> n LITERAL COMMENT BEFORE AFTER
+
+%type <record_t *> record
+%type <list_t *> list items
+%type <char *> name
+
+%token EOL COMMA SWITCH EMPTY
 
 %code provides {
 	int yylex(void);
@@ -20,12 +23,6 @@
 	extern list_t before;
 }
 
-%token <n> LITERAL COMMENT BEFORE AFTER
-%token EOL COMMA SWITCH EMPTY
-
-%type <r> record
-%type <l> list items
-%type <n> name
 
 %start document
 

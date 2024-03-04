@@ -10,6 +10,7 @@ void yyerror(char *s, ...);
 
 typedef struct node node_t;
 typedef struct list list_t;
+typedef struct record record_t;
 
 struct node {
     char *data;

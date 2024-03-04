@@ -11,9 +11,9 @@
 int yydebug = 1;
 #endif
 
-list_t records = { 0 };
-list_t after = { 0 };
-list_t before = { 0 };
+list_t records = {0};
+list_t after = {0};
+list_t before = {0};
 
 int main(const int argc, char *argv[]) {
     if (argc < 2) {
@@ -45,13 +45,13 @@ int main(const int argc, char *argv[]) {
     printf("\n/* Template compile-time variables */\n\n");
     record_print_dupes(&dupes);
     for (node_t *p = records.head; p; p = p->next) {
-        const struct record *r = (const struct record *)p->data;
+        const record_t *r = (const record_t *)p->data;
         record_print_template(r, list_find(&dupes, r->name, scmp));
     }
 
     printf("\n/* Run-time functions */\n\n");
     for (node_t *p = records.head; p; p = p->next) {
-        const struct record *r = (const struct record *)p->data;
+        const record_t *r = (const record_t *)p->data;
         record_print_function(r);
     }
 
@@ -109,11 +109,11 @@ void list_append(list_t *l, node_t *n) {
         l->tail = l->tail->next = n;
 }
 
-struct record *record_new(char *name, list_t *args, list_t *rules, list_t *recipe) {
-    struct record *rec;
+record_t *record_new(char *name, list_t *args, list_t *rules, list_t *recipe) {
+    record_t *rec;
 
     MALLOC(rec);
-    *rec = (struct record){
+    *rec = (record_t){
         .name = name,
         .args = args,
         .rules = rules,
@@ -124,7 +124,7 @@ struct record *record_new(char *name, list_t *args, list_t *rules, list_t *recip
 }
 
 void record_free(void *rp) {
-    struct record *r = (struct record *)rp;
+    record_t *r = (record_t *)rp;
     if (r->args) list_free(r->args, free), free(r->args);
     if (r->rules) list_free(r->rules, free), free(r->rules);
     if (r->recipe) list_free(r->recipe, free), free(r->recipe);
@@ -150,7 +150,7 @@ void record_print_dupes(const list_t *l) {
     printf("\n");
 }
 
-void record_print_function(const struct record *r) {
+void record_print_function(const record_t *r) {
     list_t dummy = {0};
 
     if (!r->recipe) { // comment
@@ -194,7 +194,7 @@ void record_print_function(const struct record *r) {
     list_free(&dummy, NULL);
 }
 
-void record_print_template(const struct record *r, int dup) {
+void record_print_template(const record_t *r, int dup) {
     list_t dummy = {0};
 
     if (!r->recipe) { // comment
@@ -255,7 +255,7 @@ void record_dupes(list_t *d, list_t *l) {
     list_t s = {0};
 
     for (node_t *p = records.head; p; p = p->next) {
-        const struct record *r = (const struct record *)p->data;
+        const record_t *r = (const record_t *)p->data;
         if (!list_find(&s, r->name, scmp)) list_append(&s, node_new(r->name));
         else if (!list_find(d, r->name, scmp))
             list_append(d, node_new(r->name));
