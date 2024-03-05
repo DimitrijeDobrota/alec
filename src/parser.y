@@ -23,6 +23,7 @@
 	extern list_t prologue;
 }
 
+%destructor { free($$); } <char *>
 
 %start document
 
