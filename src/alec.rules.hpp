@@ -56,22 +56,18 @@ enum class Motion {
 namespace details {
 
 template <std::size_t N> struct string_literal {
-    consteval string_literal(const char (&str)[N]) { std::copy_n(str, N, value); }
-    consteval std::size_t size() const { return N; }
+    constexpr string_literal(const char (&str)[N]) { std::copy_n(str, N, value); }
+    constexpr std::size_t size() const { return N; }
 
     char value[N];
 };
 
-struct helper {
-    template <typename T> static consteval std::size_t size(T val);
-    template <typename T> static constexpr char *append(char *ptr, T val);
-
-    template <std::size_t N> static constexpr std::size_t size(string_literal<N> val) { return val.size(); }
+namespace helper {
+    template <std::size_t N> static constexpr std::size_t size(string_literal<N> val) { return N; }
     static constexpr std::size_t size(char val) { return 1; }
     static constexpr std::size_t size(int val) {
         std::size_t len = 1;
-        while (val /= 10)
-            len++;
+        while (val /= 10) len++;
         return len;
     }
 
@@ -94,28 +90,26 @@ struct helper {
     }
 
     static const std::string make(auto... args) {
-        std::size_t len = (helper::size(args) + ... + 2);
-        std::string res(len, 'a');
+        std::string res((helper::size(args) + ... + 2), 0);
         res[0] = Ctrl::ESC, res[1] = '[';
-        auto map = [ptr = res.data() + 2](auto const &s) mutable { ptr = helper::append(ptr, s); };
-        (map(args), ...);
-        res[len] = 0;
+        auto ptr = res.data() + 2;
+        ((ptr = helper::append(ptr, args)), ...);
         return res;
     }
+
+
+    template <auto... Args> struct escape_t {
+        static constexpr const auto value = []() {
+            std::array<char, (helper::size(Args) + ... + 3)> arr = {Ctrl::ESC, '[', 0};
+            auto ptr = arr.data() + 2;
+            ((ptr = helper::append(ptr, Args)), ...);
+            return arr;
+        }();
+        static constexpr auto data = value.data();
+    };
 };
 
-template <auto... Args> struct escape_t {
-    static constexpr const auto value = []() {
-        constexpr std::size_t len = (helper::size(Args) + ... + 2);
-        std::array<char, len + 1> arr{Ctrl::ESC, '[', 0};
-        auto map = [ptr = arr.data() + 2](auto const &s) mutable { ptr = helper::append(ptr, s); };
-        (map(Args), ...);
-        arr[len] = 0;
-        return arr;
-    }();
-};
-
-template <auto... Strs> static constexpr auto escape = escape_t<Strs...>::value.data();
+template <auto... Args> static constexpr auto escape = helper::escape_t<Args...>().data;
 template <details::string_literal... Strs> static constexpr auto escape_literal = escape<Strs...>;
 
 } // namespace details
