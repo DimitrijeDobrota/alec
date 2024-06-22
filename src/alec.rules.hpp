@@ -55,11 +55,15 @@ enum class Motion {
 
 namespace details {
 
-template <std::size_t N> struct string_literal {
-    constexpr string_literal(const char (&str)[N]) { std::copy_n(str, N, value); }
-    constexpr std::size_t size() const { return N; }
+template<std::size_t N>
+struct string_literal
+{
+  constexpr string_literal(const char (&str)[N]) : m_value(std::to_array(str)) {}
 
-    char value[N];
+  constexpr std::size_t size() const { return N; }
+  constexpr const char* data() const { return m_value.data(); }
+
+  std::array<char, N> m_value;
 };
 
 namespace helper {
@@ -72,7 +76,7 @@ namespace helper {
     }
 
     template <std::size_t N> static constexpr char *append(char *ptr, string_literal<N> val) {
-        std::copy_n(val.value, N, ptr);
+        std::copy_n(val.data(), N, ptr);
         return ptr + N;
     }
 
