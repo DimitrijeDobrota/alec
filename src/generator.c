@@ -7,7 +7,7 @@
         if (!x) yyerror("out of space"), exit(1);                                                            \
     } while (0);
 
-#ifdef YYDEBUG
+#ifndef YYDEBUG
 int yydebug = 1;
 #endif
 
