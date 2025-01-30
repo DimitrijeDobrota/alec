@@ -19,9 +19,7 @@ Generator code shown here is written in flex and bison and can be easily
 adapted for other use cases.
 
 
-## Getting Started
-
-### Dependencies
+## Dependencies
 
 * CMake 3.25.2 or latter
 * Compiler with C++20 support (tested on clang version 16.0.5)
@@ -29,13 +27,9 @@ adapted for other use cases.
 * Bison 3.8.2
 
 
-### Installing
+## Building and installing
 
-* Clone the repo
-* Make a build folder and cd into it
-* Run `cmake -DCMAKE_BUILD_TYPE=Release <path to cloned repo>`
-* Run `make`
-* If desired run `make install` in order to install the library
+See the [`BUILDING`](BUILDING.md) document.
 
 
 ### Usage
@@ -200,13 +194,18 @@ static inline bool limit_pos(int n) { return n >= 0; };
 
 ## Version History
 
-* 1.0
+* 0.1
     * Initial Release
+
+
+## Contributing
+
+See the [`CONTRIBUTING`](CONTRIBUTING.md) document.
 
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details
+This project is licensed under the MIT License - see the [`LICENSE`](LICENSE.md) file for details
 
 ## References
 

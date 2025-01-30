@@ -1,7 +1,8 @@
-#include "alec.hpp"
+#include "alec/alec.hpp"
 #include <iostream>
 
 using namespace alec;
+
 using enum Color;
 using enum Decor;
 
