@@ -1,11 +1,12 @@
 #include "alec/alec.hpp"
 #include <iostream>
 
-using namespace alec;
+using namespace alec; // NOLINT
+
 using enum Color;
 using enum Decor;
 
-int main(void) {
+int main() {
     std::cout << abuf_enable() << cursor_hide();
 
     std::cout << cursor_position(1, 1) << foreground(91) << "HELLO!\n";
@@ -20,7 +21,7 @@ int main(void) {
     std::cout << cursor_down(10) << "General Kenobi!";
     std::cout << cursor_position(10, 40) << "no pain no gain" << cursor_restore() << cursor_show();
 
-    getchar();
+    (void) getchar();
 
     std::cout << abuf_disable();
 

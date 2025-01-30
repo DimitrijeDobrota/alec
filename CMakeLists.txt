@@ -4,10 +4,10 @@ include(cmake/prelude.cmake)
 
 project(
     alec
-    VERSION 0.1.9
+    VERSION 0.1.10
     DESCRIPTION "Abstraction Layer for Escape Codes"
     HOMEPAGE_URL "git://git.dimitrijedobrota.com/alec.git"
-    LANGUAGES C CXX
+    LANGUAGES CXX
 )
 
 include(cmake/project-is-top-level.cmake)
@@ -21,19 +21,23 @@ file(MAKE_DIRECTORY ${PARSER_DIR})
 find_package(FLEX)
 find_package(BISON)
 
-set(LEXER_OUT "${PARSER_DIR}/lexer.c")
-set(PARSER_OUT "${PARSER_DIR}/parser.c")
+set(LEXER_OUT "${PARSER_DIR}/lexer.cpp")
+set(PARSER_OUT "${PARSER_DIR}/parser.cpp")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(FLAGS "--debug")
 endif()
 
-FLEX_TARGET(LEXER source/lexer.l "${LEXER_OUT}" DEFINES_FILE "${PARSER_DIR}/scanner.h" COMPILE_FLAGS "${FLAGS}")
-BISON_TARGET(PARSER source/parser.y "${PARSER_OUT}" DEFINES_FILE "${PARSER_DIR}/parser.h" COMPILE_FLAGS "${FLAGS}")
+FLEX_TARGET(LEXER source/lexer.l "${LEXER_OUT}" DEFINES_FILE "${PARSER_DIR}/scanner.hpp" COMPILE_FLAGS "${FLAGS}")
+BISON_TARGET(PARSER source/parser.y "${PARSER_OUT}" DEFINES_FILE "${PARSER_DIR}/parser.hpp" COMPILE_FLAGS "${FLAGS}")
 ADD_FLEX_BISON_DEPENDENCY(LEXER PARSER)
 
-add_executable(generator "${LEXER_OUT}" "${PARSER_OUT}" source/generator.c)
+set_source_files_properties(${LEXER_OUT} PROPERTIES SKIP_LINTING ON)
+set_source_files_properties(${PARSER_OUT} PROPERTIES SKIP_LINTING ON)
+
+add_executable(generator "${LEXER_OUT}" "${PARSER_OUT}" source/generator.cpp)
 target_include_directories(generator PRIVATE source ${PARSER_DIR})
+target_compile_features(generator PUBLIC cxx_std_20)
 
 set(GENERATE_OUT_BIN "${PROJECT_BINARY_DIR}/bin")
 set(GENERATE_OUT_INCLUDE "${PROJECT_BINARY_DIR}/include/alec")

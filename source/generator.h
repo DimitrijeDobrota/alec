@@ -1,54 +1,19 @@
-#ifndef ALEC_PARSER_H
-#define ALEC_PARSER_H
+#pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string>
+#include <vector>
 
-extern int yylineno;
-void yyerror(char *s, ...);
+namespace alec
+{
 
-typedef struct node node_t;
-typedef struct list list_t;
-typedef struct record record_t;
+struct record
+{
+  std::string name;
+  std::vector<char*> args;
+  std::vector<char*> rules;
+  std::vector<char*> recipe;
 
-struct node {
-    char *data;
-    node_t *next;
+  bool operator<(const record& rhs) const { return name < rhs.name; }
 };
 
-struct list {
-    node_t *head;
-    node_t *tail;
-};
-
-struct record {
-    char *name;
-    list_t *args;
-    list_t *rules;
-    list_t *recipe;
-};
-
-typedef void (*free_f)(void *);
-typedef int (*cmp_f)(const void *, const void *);
-
-int scmp(const void *a, const void *b);
-
-node_t *node_new(char *data);
-
-list_t *list_new(char *data);
-void list_free(list_t *l, free_f free_data);
-void list_append(list_t *l, node_t *n);
-
-int list_find(list_t *l, void *data, cmp_f cmp);
-
-struct record *record_new(char *name, list_t *args, list_t *rules, list_t *recipe);
-void record_free(void *rp);
-
-void record_dupes(list_t *d, list_t *l);
-
-void record_print_template(const struct record *r, int dup);
-void record_print_function(const struct record *r);
-void record_print_dupes(const list_t *l);
-
-#endif
+}  // namespace alec

@@ -1,9 +1,8 @@
-#ifndef ALEC_ALEC_H
-#define ALEC_ALEC_H
+#pragma once
 
 #include <algorithm>
 #include <array>
-#include <assert.h>
+#include <cassert>
 #include <cstdint>
 #include <string>
 #include <type_traits>
@@ -67,11 +66,13 @@ struct string_literal
 };
 
 namespace helper {
-    template <std::size_t N> static constexpr std::size_t size(string_literal<N> val) { return N; }
-    static constexpr std::size_t size(char val) { return 1; }
+    template <std::size_t N> static constexpr std::size_t size(string_literal<N> /*val*/) { return N; }
+    static constexpr std::size_t size(char /*val*/) { return 1; }
     static constexpr std::size_t size(int val) {
         std::size_t len = 1;
-        while (val /= 10) len++;
+        while ((val /= 10) != 0) { 
+			len++;
+		}
         return len;
     }
 
@@ -88,12 +89,12 @@ namespace helper {
     static constexpr char *append(char *ptr, int val) {
         char *tmp = ptr += size(val);
         do {
-            *--tmp = '0' + (val % 10);
-        } while (val /= 10);
+            *--tmp = '0' + static_cast<char>(val % 10);
+        } while ((val /= 10) != 0);
         return ptr;
     }
 
-    static const std::string make(auto... args) {
+    static constexpr std::string make(auto... args) {
         std::string res((helper::size(args) + ... + 2), 0);
         res[0] = Ctrl::ESC, res[1] = '[';
         auto ptr = res.data() + 2;
@@ -111,7 +112,8 @@ namespace helper {
         }();
         static constexpr auto data = value.data();
     };
-};
+
+} // namespace helper
 
 template <auto... Args> static constexpr auto escape = helper::escape_t<Args...>().data;
 template <details::string_literal... Strs> static constexpr auto escape_literal = escape<Strs...>;
@@ -120,14 +122,14 @@ template <details::string_literal... Strs> static constexpr auto escape_literal 
 
 // Tamplate parameter constraints
 
-template <int n>
-concept limit_256_v = n >= 0 && n < 256;
+template <int N>
+concept limit_256_v = N >= 0 && N < 256;
 
-template <int n>
-concept limit_pos_v = n >= 0;
+template <int N>
+concept limit_pos_v = N >= 0;
 
-static inline bool limit_pos(int n) { return n >= 0; };
-static inline bool limit_256(int n) { return n >= 0 && n < 256; };
+static constexpr bool limit_pos(int n) { return n >= 0; }
+static constexpr bool limit_256(int n) { return n >= 0 && n < 256; }
 
 %%
 
@@ -177,12 +179,12 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
     erase_display
     Motion m
     |
-    (int)m, 'J'
+    static_cast<int>(m), 'J'
 
     erase_line
     Motion m
     |
-    (int)m, 'K'
+    static_cast<int>(m), 'K'
 
 // Scroll up/down
 
@@ -210,12 +212,12 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
     foreground
     Color color
     |
-    (int)color + 30, 'm'
+    static_cast<int>(color) + 30, 'm'
 
     background
     Color color
     |
-    (int)color + 40, 'm'
+    static_cast<int>(color) + 40, 'm'
 
 // 256-color palette
 
@@ -232,26 +234,26 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
 // RGB colors
 
     foreground
-    int R, int G, int B
+    int red, int green, int blue
     limit_256
-    38, ';', 2, ';', R, ';', G, ';', B, 'm'
+    38, ';', 2, ';', red, ';', green, ';', blue, 'm'
 
     background
-    int R, int G, int B
+    int red, int green, int blue
     limit_256
-    48, ';', 2, ';', R, ';', G, ';', B, 'm'
+    48, ';', 2, ';', red, ';', green, ';', blue, 'm'
 
 // Set/reset text decorators
 
     decor_set
     Decor decor
     |
-    (int)decor, 'm'
+    static_cast<int>(decor), 'm'
 
     decor_reset
     Decor decor
     |
-    (int)decor + 20, 'm'
+    static_cast<int>(decor) + 20, 'm'
 
 // Save/restore cursor position;
 
@@ -331,7 +333,4 @@ static inline bool limit_256(int n) { return n >= 0 && n < 256; };
 
 // Keyboard string TODO
 
-} // namespace ALEC
-
-
-#endif
+} // namespace alec

@@ -1,29 +1,60 @@
+%require "3.8.2"
+%language "c++"
+
 %code requires {
+    #include <string>
+    #include <cstdint>
+    #include "location.hpp"
     #include "generator.h"
-    #include <stdarg.h>
+
+    namespace alec {
+        class driver;
+    } // namespace alec
 }
 
-%define api.value.type union
-%token <char *> n LITERAL COMMENT PROLOGUE EPILOGUE
+%define api.namespace { alec }
+%define api.parser.class { parser }
+%define api.value.type variant
+%define api.location.type { location_t }
 
-%type <record_t *> record
-%type <list_t *> list items
-%type <char *> name
+%locations
+%define parse.error detailed
 
+%header
+%verbose
+
+%parse-param {driver &drv}
+%parse-param {const bool debug}
+
+%initial-action
+{
+    #if YYDEBUG != 0
+        set_debug_level(debug);
+    #endif
+};
+
+%code {
+    #include "driver.hpp"
+
+    namespace alec {
+        template<typename RHS>
+        void calcLocation(location_t &current, const RHS &rhs, const std::size_t n);
+
+        std::vector<record> records;
+        std::vector<std::string> epilogue;
+        std::vector<std::string> prologue;
+    } // namespace alec
+
+    #define YYLLOC_DEFAULT(Cur, Rhs, N) calcLocation(Cur, Rhs, N)
+    #define yylex drv.yylex
+}
+
+%left <char *> LITERAL COMMENT PROLOGUE EPILOGUE
 %token EOL COMMA SWITCH EMPTY
 
-%code provides {
-	int yylex(void);
-	int yyparse(void);
-	void yyrestart(FILE *);
-	int yylex_destroy(void);
-
-	extern list_t records;
-	extern list_t epilogue;
-	extern list_t prologue;
-}
-
-%destructor { free($$); } <char *>
+%type <record> record
+%type <std::vector<char*>> list items
+%type <char *> name
 
 %start document
 
@@ -32,41 +63,44 @@
 document: prologue grammar epilogue
 
 prologue: %empty
-      | prologue PROLOGUE { list_append(&prologue, node_new($2)); }
+      | prologue PROLOGUE { prologue.push_back($2); }
       ;
 
 epilogue: SWITCH
-     | epilogue EPILOGUE { list_append(&epilogue, node_new($2)); }
+     | epilogue EPILOGUE { epilogue.push_back($2); }
      ;
 
 grammar: SWITCH
    | grammar EOL
-   | grammar record { list_append(&records, node_new((char *)$2)); }
+   | grammar record { records.push_back(std::move($2)); }
    ;
 
-record: name list list list { $$ = record_new($1, $2, $3, $4); }
-      | COMMENT             { $$ = record_new($1, NULL, NULL, NULL); }
+record: name list list list { $$ = record($1, $2, $3, $4); }
+      | COMMENT             { $$ = record($1, {}, {}, {}); }
       ;
 
 name: LITERAL EOL   { $$ = $1; }
     ;
 
-list: EMPTY       { $$ = NULL; }
+list: EMPTY       { $$ = {}; }
     | items EOL   { $$ = $1; }
     ;
 
-items: LITERAL             { $$ = list_new($1); }
-     | items COMMA LITERAL { list_append($1, node_new($3)); $$ = $1; }
+items: LITERAL             { $$ = { $1 }; }
+     | items COMMA LITERAL { $1.push_back($3); $$ = $1; }
      ;
 
 %%
 
-void yyerror(char *s, ...) {
-  va_list ap;
-  va_start(ap, s);
+namespace alec {
+    template<typename RHS>
+    inline void calcLocation(location_t &current, const RHS &rhs, const std::size_t n)
+    {
+        current = location_t(YYRHSLOC(rhs, 0).first, YYRHSLOC(rhs, n).second);
+    }
 
-  fprintf(stderr, "%d: error: ", yylineno);
-  vfprintf(stderr, s, ap);
-  fprintf(stderr, "\n");
-}
-
+    void parser::error(const location_t &location, const std::string &message)
+    {
+        std::cerr << "Error at lines " << location << ": " << message << std::endl;
+    }
+} // namespace alec

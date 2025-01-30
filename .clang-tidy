@@ -5,14 +5,19 @@
 Checks: "*,\
   -google-readability-todo,\
   -altera-*,\
+  -cppcoreguidelines-avoid-magic-numbers,\
   -fuchsia-*,\
   fuchsia-multiple-inheritance,\
   -llvm-header-guard,\
   -llvm-include-order,\
   -llvmlibc-*,\
   -modernize-use-nodiscard,\
-  -misc-non-private-member-variables-in-classes"
+  -modernize-use-trailing-return-type,\
+  -misc-non-private-member-variables-in-classes,
+  -readability-magic-numbers
+"
 WarningsAsErrors: ''
+ExcludeHeaderFilterRegex: 'parser.hpp'
 CheckOptions:
   - key: 'bugprone-argument-comment.StrictMode'
     value: 'true'
