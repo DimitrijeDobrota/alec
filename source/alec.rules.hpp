@@ -3,207 +3,240 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstdint>
+#include <cinttypes>
 #include <string>
-#include <type_traits>
 
+namespace alec
+{
 
-namespace alec {
-
-enum Ctrl {
-    BELL = 0x07,
-    BS = 0x08,
-    HT = 0x09,
-    LF = 0x0A,
-    VT = 0x0B,
-    FF = 0x0C,
-    CR = 0x0D,
-    ESC = 0x1B,
-    DEL = 0x7F,
+enum Ctrl : std::uint8_t
+{
+  BELL = 0x07,
+  BS = 0x08,
+  HT = 0x09,
+  LF = 0x0A,
+  VT = 0x0B,
+  FF = 0x0C,
+  CR = 0x0D,
+  ESC = 0x1B,
+  DEL = 0x7F,
 };
 
-enum class Color {
-    BLACK = 0,
-    RED = 1,
-    GREEN = 2,
-    YELLOW = 3,
-    BLUE = 4,
-    MAGENTA = 5,
-    CYAN = 6,
-    WHITE = 7,
-    DEFAULT = 9,
+enum class Color : std::uint8_t
+{
+  BLACK = 0,
+  RED = 1,
+  GREEN = 2,
+  YELLOW = 3,
+  BLUE = 4,
+  MAGENTA = 5,
+  CYAN = 6,
+  WHITE = 7,
+  DEFAULT = 9,
 };
 
-enum class Decor {
-    RESET = 0,
-    BOLD = 1,
-    DIM = 2,
-    ITALIC = 3,
-    UNDERLINE = 4,
-    BLINK = 5,
-    INVERSE = 7,
-    HIDE = 8,
-    STRIKE = 9,
+enum class Decor : std::uint8_t
+{
+  RESET = 0,
+  BOLD = 1,
+  DIM = 2,
+  ITALIC = 3,
+  UNDERLINE = 4,
+  BLINK = 5,
+  INVERSE = 7,
+  HIDE = 8,
+  STRIKE = 9,
 };
 
-enum class Motion {
-    END = 0,
-    BEGIN = 1,
-    WHOLE = 2,
+enum class Motion : std::uint8_t
+{
+  END = 0,
+  BEGIN = 1,
+  WHOLE = 2,
 };
 
-namespace details {
+namespace details
+{
 
-template<std::size_t N>
+template<std::size_t n>
 struct string_literal
 {
-  constexpr string_literal(const char (&str)[N]) : m_value(std::to_array(str)) {}
+  constexpr string_literal(const char (&str)[n])  // NOLINT
+      : m_value(std::to_array(str))
+  {
+  }  // NOLINT
 
-  constexpr std::size_t size() const { return N; }
+  constexpr std::size_t size() const { return n; }
   constexpr const char* data() const { return m_value.data(); }
 
-  std::array<char, N> m_value;
+  std::array<char, n> m_value;
 };
 
-namespace helper {
-    template <std::size_t N> static constexpr std::size_t size(string_literal<N> /*val*/) { return N; }
-    static constexpr std::size_t size(char /*val*/) { return 1; }
-    static constexpr std::size_t size(int val) {
-        std::size_t len = 1;
-        while ((val /= 10) != 0) { 
-			len++;
-		}
-        return len;
-    }
+namespace helper
+{
+template<std::size_t n>
+static constexpr std::size_t size(string_literal<n> /*val*/)
+{
+  return n;
+}
+static constexpr std::size_t size(char /*val*/)
+{
+  return 1;
+}
+static constexpr std::size_t size(int val)
+{
+  std::size_t len = 1;
+  while ((val /= 10) != 0) {
+    len++;
+  }
+  return len;
+}
 
-    template <std::size_t N> static constexpr char *append(char *ptr, string_literal<N> val) {
-        std::copy_n(val.data(), N, ptr);
-        return ptr + N;
-    }
+template<std::size_t n>
+static constexpr char* append(char* ptr, string_literal<n> val)
+{
+  std::copy_n(val.data(), n, ptr);
+  return ptr + n;  // NOLINT
+}
 
-    static constexpr char *append(char *ptr, char val) {
-        *ptr++ = val;
-        return ptr;
-    }
+static constexpr char* append(char* ptr, char val)
+{
+  *ptr++ = val;  // NOLINT
+  return ptr;
+}
 
-    static constexpr char *append(char *ptr, int val) {
-        char *tmp = ptr += size(val);
-        do {
-            *--tmp = '0' + static_cast<char>(val % 10);
-        } while ((val /= 10) != 0);
-        return ptr;
-    }
+static constexpr char* append(char* ptr, int val)
+{
+  char* tmp = ptr += size(val);  // NOLINT
+  do {  // NOLINT
+    *--tmp = '0' + static_cast<char>(val % 10);  // NOLINT
+  } while ((val /= 10) != 0);
+  return ptr;
+}
 
-    static constexpr std::string make(auto... args) {
-        std::string res((helper::size(args) + ... + 2), 0);
-        res[0] = Ctrl::ESC, res[1] = '[';
-        auto ptr = res.data() + 2;
-        ((ptr = helper::append(ptr, args)), ...);
-        return res;
-    }
+static constexpr std::string make(auto... args)
+{
+  std::string res((helper::size(args) + ... + 2), 0);
+  res[0] = Ctrl::ESC, res[1] = '[';
+  auto* ptr = res.data() + 2;  // NOLINT
+  ((ptr = helper::append(ptr, args)), ...);
+  return res;
+}
 
+template<auto... args>
+struct escape_t
+{
+  static constexpr const auto value = []()
+  {
+    std::array<char, (helper::size(args) + ... + 3)> arr = {Ctrl::ESC, '[', 0};
+    auto* ptr = arr.data() + 2;
+    ((ptr = helper::append(ptr, args)), ...);
+    return arr;
+  }();
+  static constexpr auto data = value.data();
+};
 
-    template <auto... Args> struct escape_t {
-        static constexpr const auto value = []() {
-            std::array<char, (helper::size(Args) + ... + 3)> arr = {Ctrl::ESC, '[', 0};
-            auto ptr = arr.data() + 2;
-            ((ptr = helper::append(ptr, Args)), ...);
-            return arr;
-        }();
-        static constexpr auto data = value.data();
-    };
+}  // namespace helper
 
-} // namespace helper
+template<auto... args>
+static constexpr auto escape = alec::details::helper::escape_t<args...>::data;
 
-template <auto... Args> static constexpr auto escape = helper::escape_t<Args...>().data;
-template <details::string_literal... Strs> static constexpr auto escape_literal = escape<Strs...>;
+template<details::string_literal... strs>
+static constexpr auto escape_literal = escape<strs...>;
 
-} // namespace details
+}  // namespace details
 
 // Tamplate parameter constraints
 
-template <int N>
-concept limit_256_v = N >= 0 && N < 256;
+template<int n>
+concept limit_256_v = n >= 0 && n < 256;
 
-template <int N>
-concept limit_pos_v = N >= 0;
+template<int n>
+concept limit_pos_v = n >= 0;
 
-static constexpr bool limit_pos(int n) { return n >= 0; }
-static constexpr bool limit_256(int n) { return n >= 0 && n < 256; }
+static constexpr bool limit_pos(int n)
+{
+  return n >= 0;
+}
+static constexpr bool limit_256(int n)
+{
+  return n >= 0 && n < 256;
+}
 
-%%
+/*%%*//*
+// NOLINTBEGIN (*cast*)
 
 // Move cursor up/down/frwd/back
 
     cursor_up
-    int n
+    int cnt
     limit_pos
-    n, 'A'
+    cnt, 'A'
 
     cursor_down
-    int n
+    int cnt
     limit_pos
-    n, 'B'
+    cnt, 'B'
 
     cursor_frwd
-    int n
+    int cnt
     limit_pos
-    n, 'C'
+    cnt, 'C'
 
     cursor_back
-    int n
+    int cnt
     limit_pos
-    n, 'D'
+    cnt, 'D'
 
 // Move cursor to the next/prev line
 
     cursor_line_next
-    int n
+    int cnt
     limit_pos
-    n, 'E'
+    cnt, 'E'
 
     cursor_line_prev
-    int n
+    int cnt
     limit_pos
-    n, 'F'
+    cnt, 'F'
 
 // Set cursor to specific column
 
     cursor_column
-    int n
+    int col
     limit_pos
-    n, 'G'
+    col, 'G'
 
 // Erase functions
 
     erase_display
-    Motion m
+    Motion mtn
     |
-    static_cast<int>(m), 'J'
+    int(mtn), 'J'
 
     erase_line
-    Motion m
+    Motion mtn
     |
-    static_cast<int>(m), 'K'
+    int(mtn), 'K'
 
 // Scroll up/down
 
     scroll_up
-    int n
+    int cnt
     limit_pos
-    n, 'S'
+    cnt, 'S'
 
     scroll_down
-    int n
+    int cnt
     limit_pos
-    n, 'T'
+    cnt, 'T'
 
 // Set cursor to a specific position
 
     cursor_position
-    int n, int m
+    int row, int col
     limit_pos
-    n, ';', m, 'H'
+    row, ';', col, 'H'
 
 // color
 
@@ -212,12 +245,12 @@ static constexpr bool limit_256(int n) { return n >= 0 && n < 256; }
     foreground
     Color color
     |
-    static_cast<int>(color) + 30, 'm'
+    int(color) + 30, 'm'
 
     background
     Color color
     |
-    static_cast<int>(color) + 40, 'm'
+    int(color) + 40, 'm'
 
 // 256-color palette
 
@@ -248,12 +281,12 @@ static constexpr bool limit_256(int n) { return n >= 0 && n < 256; }
     decor_set
     Decor decor
     |
-    static_cast<int>(decor), 'm'
+    int(decor), 'm'
 
     decor_reset
     Decor decor
     |
-    static_cast<int>(decor) + 20, 'm'
+    int(decor) + 20, 'm'
 
 // Save/restore cursor position;
 
@@ -270,14 +303,14 @@ static constexpr bool limit_256(int n) { return n >= 0 && n < 256; }
 // Set screen modes
 
     screen_mode_set
-    int n
+    int mode
     limit_pos
-    '=', n, 'h'
+    '=', mode, 'h'
 
     screen_mode_reset
-    int n
+    int mode
     limit_pos
-    '=', n, 'l'
+    '=', mode, 'l'
 
 // Private screen modes supported by most terminals
 
@@ -329,8 +362,9 @@ static constexpr bool limit_256(int n) { return n >= 0 && n < 256; }
     |
     "?2004l"
 
-%%
+// NOLINTEND (*cast*)
+*//*%%*/
 
 // Keyboard string TODO
 
-} // namespace alec
+}  // namespace alec

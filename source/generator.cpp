@@ -19,6 +19,9 @@ extern std::vector<std::string> prologue;  // NOLINT
 
 }  // namespace alec
 
+namespace
+{
+
 template<typename T>
 std::string join(const std::vector<T>& vec, const std::string& delim)
 {
@@ -35,52 +38,43 @@ std::string join(const std::vector<T>& vec, const std::string& delim)
   return res;
 }
 
-int main(const int argc, char* argv[])
+auto generate_dupes()
 {
-  using namespace alec;  // NOLINT
-
-  const bool debug = argc > 1 && std::strcmp(argv[1], "--debug") == 0;
-  std::ifstream ifile;
-  if (argc != 1) {
-    ifile.open(argv[!debug ? 1 : 2]);
-  }
-
-  driver drv = argc == 1 ? driver(std::cin, debug) : driver(ifile, debug);
-  parser parser(drv, debug);
-  const int res = parser();
-
-  // print prologue section
-  for (const auto line : prologue) {
-    std::cout << line;
-  }
-
-  std::set<std::string> seen, dupes;
-  for (const auto& record : records) {
+  std::set<std::string> dupes;
+  std::set<std::string> seen;
+  for (const auto& record : alec::records) {
     const auto [_, inserted] = seen.insert(record.name);
     if (!inserted) {
       dupes.insert(record.name);
     }
   }
+  return dupes;
+}
 
-  std::cout << "\n/* Template compile-time variables */\n\n";
+void generate_variables()
+{
+  std::cout << "\n/* Template compile-time variables */\n";
+
+  std::cout << "\n/* Forward-declare templates */\n";
+  const auto dupes = generate_dupes();
   for (const auto& dup : dupes) {
     std::cout << std::format(
-        "template <auto... val> static const char *{}_v;\n", dup);
+        "template <auto... val> static const char * const {}_v = \"\";\n", dup);
   }
 
-  for (const auto& record : records) {
+  std::cout << "\n/* Template specialization */\n\n";
+  for (const auto& record : alec::records) {
     if (record.recipe.empty()) {
       // comment
-      std::cout << std::format("{}\n\n", record.name);
+      std::cout << std::format("{}\n", record.name);
       continue;
     }
 
-    std::vector<std::string> params(record.args.size());
-    std::transform(record.args.begin(),
-                   record.args.end(),
-                   params.begin(),
-                   [](const std::string& str)
-                   { return str.substr(str.find(' ') + 1); });
+    std::vector<std::string> params;
+    params.reserve(record.args.size());
+    for (const auto& arg : record.args) {
+      params.emplace_back(arg.substr(arg.find(' ') + 1));
+    }
 
     if (!record.args.empty()) {
       std::cout << std::format("template <{}>\n", join(record.args, ", "));
@@ -110,29 +104,32 @@ int main(const int argc, char* argv[])
                                join(record.recipe, ", "));
     }
   }
+}
 
+void generate_functions()
+{
   std::cout << "\n/* Run-time functions */\n\n";
-  for (const auto& record : records) {
+  for (const auto& record : alec::records) {
     if (record.recipe.empty()) {
       // comment
-      std::cout << std::format("{}\n\n", record.name);
+      std::cout << std::format("{}\n", record.name);
       continue;
     }
 
-    std::vector<std::string> params(record.args.size());
-    std::transform(record.args.begin(),
-                   record.args.end(),
-                   params.begin(),
-                   [](const std::string& str)
-                   { return str.substr(str.find(' ') + 1); });
+    std::vector<std::string> params;
+    params.reserve(record.args.size());
+    for (const auto& arg : record.args) {
+      params.emplace_back(arg.substr(arg.find(' ') + 1));
+    }
 
-    std::cout << std::format("static constexpr auto {}({}) {{\n",
+    std::cout << std::format("static constexpr auto {}({})\n{{\n",
                              record.name,
                              join(record.args, ", "));
 
     if (!record.rules.empty()) {
       for (const auto& param : params) {
         std::vector<std::string> constraints;
+        constraints.reserve(record.rules.size());
         for (const auto& rule : record.rules) {
           constraints.emplace_back(std::format("{}({})", rule, param));
         }
@@ -149,9 +146,39 @@ int main(const int argc, char* argv[])
 
     std::cout << "\n}\n\n";
   }
+}
+
+}  // namespace
+
+int main(const int argc, char* argv[])
+{
+  const bool debug = argc > 1 && std::strcmp(argv[1], "--debug") == 0;
+  std::ifstream ifile;
+  if (argc != 1) {
+    ifile.open(argv[!debug ? 1 : 2]);
+  }
+
+  using namespace alec;  // NOLINT
+
+  driver drv = argc == 1 ? driver(std::cin, debug) : driver(ifile, debug);
+  parser parser(drv, debug);
+  const int res = parser();
+
+  if (res != 0) {
+    std::cerr << "Parser error";
+    return -1;
+  }
+
+  // print prologue section
+  for (const auto& line : prologue) {
+    std::cout << line;
+  }
+
+  generate_variables();
+  generate_functions();
 
   // print epilogue section
-  for (const auto line : epilogue) {
+  for (const auto& line : epilogue) {
     std::cout << line;
   }
 }

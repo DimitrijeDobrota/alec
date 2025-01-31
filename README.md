@@ -42,40 +42,40 @@ and don't need to be called.
 
 #### Available functions with short explanation
 
-| Name              | parameters          | Description                                     |
-|-------------------|---------------------|-------------------------------------------------|
-| cursor_up         | int n               | Move cursor n lines up                          |
-| cursor_down       | int n               | Move cursor n lines down                        |
-| cursor_frwd       | int n               | Move cursor n lines left                        |
-| cursor_back       | int n               | Move cursor n lines right                       |
-| cursor_line_next  | int n               | Move cursor to beginning of line n lines down   |
-| cursor_line_prev  | int n               | Move cursor to beginning of line n lines up     |
-| cursor_column     | int n               | Set cursor to specific position on current line |
-| cursor_position   | int n, int m        | Set cursor to specific position on screen       |
-| erase_display     | Motion m            | Erase in display mode                           |
-| erase_line        | Motion m            | Erase in line mode                              |
-| scroll_up         | int n               | Scroll whole page up by n                       |
-| scroll_down       | int n               | Scroll whole page down by n                     |
-| foreground        | Color color         | Set foreground to color                         |
-| background        | Color color         | Set background to color                         |
-| foreground        | int idx             | Set foreground to idx in 256 color pallet       |
-| background        | int idx             | Set background to idx in 256 color pallet       |
-| foreground        | int R, int G, int B | Set foreground to RGB value                     |
-| background        | int R, int G, int B | Set background to RGB value                     |
-| decor_set         | Decor decor         | Turn specific decoration on                     |
-| decor_reset       | Decor decor         | Turn specific decoration of                     |
-| cursor_save       |                     | Saves cursor position                           |
-| cursor_restore    |                     | Restore cursor position                         |
-| screen_mode_set   | int n               | Changes screen width or type to mode n          |
-| screen_mode_reset | int n               | Reset screen width or type to mode n            |
-| screen_save       |                     | Save screen                                     |
-| screen_restore    |                     | Restore screen                                  |
-| cursor_show       |                     | Show cursor                                     |
-| cursor_hide       |                     | Hide cursor                                     |
-| abuf_show         |                     | Enable alternate screen buffer                  |
-| abuf_hide         |                     | Disable alternate screen buffer                 |
-| paste_enable      |                     | Turn on bracketed paste mode                    |
-| paste_disable     |                     | Turn off bracketed paste mode                   |
+| Name              | parameters          | Description                                       |
+|-------------------|---------------------|---------------------------------------------------|
+| cursor_up         | int cnt             | Move cursor `cnt` lines up                        |
+| cursor_down       | int cnt             | Move cursor `cnt` lines down                      |
+| cursor_frwd       | int cnt             | Move cursor `cnt` lines left                      |
+| cursor_back       | int cnt             | Move cursor `cnt` lines right                     |
+| cursor_line_next  | int cnt             | Move cursor to beginning of line `cnt` lines down |
+| cursor_line_prev  | int cnt             | Move cursor to beginning of line `cnt` lines up   |
+| cursor_column     | int col             | Set cursor to specific position on current line   |
+| cursor_position   | int col, int row    | Set cursor to specific position on screen         |
+| erase_display     | Motion mtn          | Erase in display mode                             |
+| erase_line        | Motion mtn          | Erase in line mode                                |
+| scroll_up         | int cnt             | Scroll whole page up by `cnt`                     |
+| scroll_down       | int cnt             | Scroll whole page down by `cnt`                   |
+| foreground        | Color color         | Set foreground to `color`                         |
+| background        | Color color         | Set background to `color`                         |
+| foreground        | int idx             | Set foreground to `idx` in 256 color pallet       |
+| background        | int idx             | Set background to `idx` in 256 color pallet       |
+| foreground        | int R, int G, int B | Set foreground to `RGB` value                     |
+| background        | int R, int G, int B | Set background to `RGB` value                     |
+| decor_set         | Decor decor         | Turn specific decoration on                       |
+| decor_reset       | Decor decor         | Turn specific decoration of                       |
+| cursor_save       |                     | Saves cursor position                             |
+| cursor_restore    |                     | Restore cursor position                           |
+| screen_mode_set   | int mode            | Changes screen width or type to `mode`            |
+| screen_mode_reset | int mode            | Reset screen width or type to `mode`              |
+| screen_save       |                     | Save screen                                       |
+| screen_restore    |                     | Restore screen                                    |
+| cursor_show       |                     | Show cursor                                       |
+| cursor_hide       |                     | Hide cursor                                       |
+| abuf_show         |                     | Enable alternate screen buffer                    |
+| abuf_hide         |                     | Disable alternate screen buffer                   |
+| paste_enable      |                     | Turn on bracketed paste mode                      |
+| paste_disable     |                     | Turn off bracketed paste mode                     |
 
 
 #### Enumeration
@@ -130,7 +130,7 @@ and don't need to be called.
 
 Configuration file `alec.rules.hpp` is used to customize the output of
 `alec.hpp` file. Similarly to Flex and Bison, configuration files needs to have
-3 sections separated by `%%`: prologue, grammar and epilogue. Prologue and
+3 sections separated by `/*%%*/`: prologue, grammar and epilogue. Prologue and
 epilogue are copied as-is to the output file whilst the grammar section
 contains rules for generating template and function code.
 
@@ -168,7 +168,7 @@ concept limit_pos_v = n >= 0;
 // function constraint
 static inline bool limit_pos(int n) { return n >= 0; };
 
-%%
+/*%%*//*
 
     // comment that goes into output
     decor_reset
@@ -177,16 +177,16 @@ static inline bool limit_pos(int n) { return n >= 0; };
     (int)decor + 20, 'm'
 
     screen_mode_set
-    int n
+    int mode
     limit_pos
-    '=', n, 'h'
+    '=', mode, 'h'
 
     paste_enable
     |
     |
     "?2004h"
 
-%%
+*//*%%*/
 
 // ending of a header file
 ```
@@ -209,6 +209,6 @@ This project is licensed under the MIT License - see the [`LICENSE`](LICENSE.md)
 
 ## References
 
-* [ANSI Escape Sequences gist](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
-* [Wikipedia article](https://en.wikipedia.org/wiki/ANSI_escape_code)
+* [`ANSI Escape Sequences gist`](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
+* [`Wikipedia article`](https://en.wikipedia.org/wiki/ANSI_escape_code)
 

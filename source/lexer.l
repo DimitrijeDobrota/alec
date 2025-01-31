@@ -21,7 +21,7 @@
 
     #define END_MODE() do {                                                           \
         if(yy_flex_debug) std::cerr<<"Returning to mode: "<<mode_st.top()<<std::endl; \
-        BEGIN(mode_st.top());                                                         \
+        BEGIN(mode_st.top());                                                          \
         mode_st.pop();                                                                \
     } while(0);
 %}
@@ -32,6 +32,8 @@
 
 
 LINE_END (\n|\r|\r\n)
+SWITCH_BEGIN "/\*%%\*//\*"{LINE_END}
+SWITCH_END "\*//\*%%\*/"{LINE_END}
 
 %x GEN LAST
 
@@ -42,9 +44,9 @@ LINE_END (\n|\r|\r\n)
 %}
 
 
-"%%"{LINE_END}     { BEGIN_MODE(GEN); return Token::SWITCH; }
-.*{LINE_END}       { 
-    yylval->emplace<char *>(strdup(yytext)); 
+{SWITCH_BEGIN}     { BEGIN_MODE(GEN); return Token::SWITCH; }
+.*{LINE_END}       {
+    yylval->emplace<std::string>(yytext);
     return Token::PROLOGUE; 
 }
 
@@ -53,7 +55,7 @@ LINE_END (\n|\r|\r\n)
 <GEN>^[\t ]*\|*[\t ]*{LINE_END}  { return Token::EMPTY; }
 
 <GEN>^[\t ]*"//".* {
-    yylval->emplace<char *>(strdup(yytext));
+    yylval->emplace<std::string>(yytext);
     return Token::COMMENT;
 }
 
@@ -63,17 +65,17 @@ LINE_END (\n|\r|\r\n)
     char *p = yytext + strlen(yytext) - 1;
     while(isspace(*p)) *p-- = '\0';
 	while(*yytext && isspace(*yytext)) yytext++;
-	yylval->emplace<char *>(strdup(yytext));
+	yylval->emplace<std::string>(yytext);
     return Token::LITERAL;
 }
 
-<GEN>"%%"{LINE_END} {
+<GEN>{SWITCH_END} {
     BEGIN_MODE(LAST);
     return Token::SWITCH;
 }
 
 <LAST>.*{LINE_END} {
-    yylval->emplace<char *>(strdup(yytext));
+    yylval->emplace<std::string>(yytext);
     return Token::EPILOGUE;
 }
 

@@ -53,8 +53,8 @@
 %token EOL COMMA SWITCH EMPTY
 
 %type <record> record
-%type <std::vector<char*>> list items
-%type <char *> name
+%type <std::vector<std::string>> list items
+%type <std::string> name
 
 %start document
 
@@ -63,16 +63,16 @@
 document: prologue grammar epilogue
 
 prologue: %empty
-      | prologue PROLOGUE { prologue.push_back($2); }
+      | prologue PROLOGUE { prologue.emplace_back($2); }
       ;
 
 epilogue: SWITCH
-     | epilogue EPILOGUE { epilogue.push_back($2); }
+     | epilogue EPILOGUE { epilogue.emplace_back($2); }
      ;
 
 grammar: SWITCH
    | grammar EOL
-   | grammar record { records.push_back(std::move($2)); }
+   | grammar record { records.emplace_back($2); }
    ;
 
 record: name list list list { $$ = record($1, $2, $3, $4); }
@@ -87,7 +87,7 @@ list: EMPTY       { $$ = {}; }
     ;
 
 items: LITERAL             { $$ = { $1 }; }
-     | items COMMA LITERAL { $1.push_back($3); $$ = $1; }
+     | items COMMA LITERAL { $1.emplace_back($3); $$ = $1; }
      ;
 
 %%
