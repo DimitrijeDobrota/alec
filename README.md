@@ -72,8 +72,8 @@ and don't need to be called.
 | screen_restore    |                     | Restore screen                                    |
 | cursor_show       |                     | Show cursor                                       |
 | cursor_hide       |                     | Hide cursor                                       |
-| abuf_show         |                     | Enable alternate screen buffer                    |
-| abuf_hide         |                     | Disable alternate screen buffer                   |
+| abuf_enable       |                     | Enable alternate screen buffer                    |
+| abuf_disable      |                     | Disable alternate screen buffer                   |
 | paste_enable      |                     | Turn on bracketed paste mode                      |
 | paste_disable     |                     | Turn off bracketed paste mode                     |
 

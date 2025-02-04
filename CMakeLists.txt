@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     alec
-    VERSION 0.1.11
+    VERSION 0.1.12
     DESCRIPTION "Abstraction Layer for Escape Codes"
     HOMEPAGE_URL "git://git.dimitrijedobrota.com/alec.git"
     LANGUAGES CXX
@@ -92,7 +92,6 @@ if(PROJECT_IS_TOP_LEVEL)
     add_subdirectory(example)
   endif()
 endif()
-
 
 # ---- Developer mode ----
 

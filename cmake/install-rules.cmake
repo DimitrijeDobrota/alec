@@ -16,7 +16,7 @@ include(GNUInstallDirs)
 set(package alec)
 
 install(
-    DIRECTORY include/
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     COMPONENT alec_Development
 )
