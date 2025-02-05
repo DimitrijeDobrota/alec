@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     alec
-    VERSION 0.1.13
+    VERSION 0.1.14
     DESCRIPTION "Abstraction Layer for Escape Codes"
     HOMEPAGE_URL "git://git.dimitrijedobrota.com/alec.git"
     LANGUAGES CXX

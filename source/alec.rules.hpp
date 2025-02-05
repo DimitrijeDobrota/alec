@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -386,6 +387,8 @@ enum error_code_t  // NOLINT
   TERMIOSWR,
   BUFFULL,
   CHARRD,
+  IOCTL,
+  SCREENSZ
 };
 
 template<error_code_t e>
@@ -411,6 +414,10 @@ private:
         return "Buffer is full";
       case error_code_t::CHARRD:
         return "Can't read character";
+      case error_code_t::IOCTL:
+        return "ioctl error";
+      case error_code_t::SCREENSZ:
+        return "Can't determine the screen size";
     }
 
     return "alec error, should not happen...";
@@ -531,6 +538,25 @@ inline void init_buffer(int fdsc)
 inline void dest_buffer()
 {
   get_buffer().reset();
+}
+
+inline std::pair<std::uint16_t, std::uint16_t> get_screen_size()
+{
+#ifdef TIOCGSIZE
+  struct ttysize tts = {};
+  if (ioctl(STDIN_FILENO, TIOCGSIZE, &tts) == -1) {  // NOLINT
+    throw error<error_code_t::IOCTL>();
+  }
+  return {tts.ts_cols, tts.ts_lines};
+#elif defined(TIOCGWINSZ)
+  struct winsize tts = {};
+  if (ioctl(STDIN_FILENO, TIOCGWINSZ, &tts) == -1) {  // NOLINT
+    throw error<error_code_t::IOCTL>();
+  }
+  return {tts.ws_col, tts.ws_row};
+#endif /* TIOCGSIZE */
+
+  throw error<error_code_t::SCREENSZ>();
 }
 
 class event
