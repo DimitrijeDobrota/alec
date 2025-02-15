@@ -578,16 +578,21 @@ public:
     MOTION = 8,
   };
 
-  event(Type type, uint8_t mod_mask, uint8_t key)
+  event(Type type, uint8_t mod_mask, uint8_t key)  // NOLINT
       : m_type(type)
       , m_mod_mask(mod_mask)
       , m_key(key)
   {
   }
 
-  auto type() const { return m_type; }
-  auto key() const { return m_key; }
-  auto mod_mask() const { return m_mod_mask; }
+  const auto& type() const { return m_type; }
+  auto& type() { return m_type; }
+
+  const auto& key() const { return m_key; }
+  auto& key() { return m_key; }
+
+  const auto& mod_mask() const { return m_mod_mask; }
+  auto& mod_mask() { return m_mod_mask; }
 
   bool is_set(uint8_t mask) const { return mask == (m_mod_mask & mask); }
 
