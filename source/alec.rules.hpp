@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cinttypes>
+#include <cstdint>
 #include <optional>
 #include <stdexcept>
 #include <string>
