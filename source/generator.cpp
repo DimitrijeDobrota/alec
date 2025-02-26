@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -63,34 +64,33 @@ void generate_variables()
     }
 
     if (!record.args.empty()) {
-      std::cout << tmplate(record.args);
+      std::cout << Template(record.args);
     }
 
     if (!record.rules.empty()) {
-      std::cout << rquires(accumulate(
-          params,
-          " && ",
-          [&](const auto& param)
-          {
-            return accumulate(record.rules,
-                              " && ",
-                              [&](const auto& rule)
-                              { return tmplate_spec(rule + "_v", param); });
-          }));
+      std::cout << Requires(
+          join(params,
+               " && ",
+               [&](const auto& param)
+               {
+                 return join(record.rules,
+                             " && ",
+                             [&](const auto& rule)
+                             { return TemplateD(rule + "_v", param); });
+               }));
     }
 
     std::cout << "static constexpr auto " << record.name + "_v";
 
     if (dupes.contains(record.name)) {
-      std::cout << tmplate_spec("", accumulate(params, ", "));
+      std::cout << TemplateD("", params);
     }
 
     std::cout << " = ";
     if (!record.recipe.empty() && record.recipe[0][0] == '"') {
-      std::cout << tmplate_spec("details::escape_literal", record.recipe[0]);
+      std::cout << TemplateD("details::escape_literal", record.recipe[0]);
     } else {
-      std::cout << tmplate_spec("details::escape",
-                                accumulate(record.recipe, ", "));
+      std::cout << TemplateD("details::escape", record.recipe);
     }
     std::cout << ";\n\n";
   }
@@ -113,37 +113,38 @@ void generate_functions()
       params.emplace_back(arg.substr(arg.find(' ') + 1));
     }
 
-    std::cout << func(record.name, "static constexpr auto", record.args);
+    std::cout << Function(record.name, "static constexpr auto", record.args);
 
     if (!record.rules.empty()) {
       for (const auto& param : params) {
-        std::cout << call_s("assert",
-                            accumulate(record.rules,
-                                       " && ",
-                                       [&](const std::string& rule)
-                                       { return call(rule, param); }));
+        std::cout << Statement(Call(
+            "assert",
+            join(record.rules,
+                 " && ",
+                 [&](const std::string& rule) { return Call(rule, param); })));
       }
     }
 
     if (record.args.empty()) {
-      std::cout << ret(record.name + "_v");
+      std::cout << Return(record.name + "_v");
     } else {
-      std::cout << ret(
-          call("details::helper::make", accumulate(record.recipe, ", ")));
+      std::cout << Return(Call("details::helper::make", record.recipe));
     }
 
-    std::cout << func(record.name);
+    std::cout << Function(record.name);
   }
 }
 
 }  // namespace
 
-int main(const int argc, char* argv[])
+int main(int argc, char* argv[])
 {
-  const bool debug = argc > 1 && std::strcmp(argv[1], "--debug") == 0;
+  const std::span args(argv, static_cast<std::size_t>(argc));
+
+  const bool debug = argc > 1 && std::strcmp(args[1], "--debug") == 0;
   std::ifstream ifile;
   if (argc != 1) {
-    ifile.open(argv[!debug ? 1 : 2]);
+    ifile.open(args[!debug ? 1 : 2]);
   }
 
   using namespace alec;  // NOLINT

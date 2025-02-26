@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     alec
-    VERSION 0.1.16
+    VERSION 0.1.17
     DESCRIPTION "Abstraction Layer for Escape Codes"
     HOMEPAGE_URL "git://git.dimitrijedobrota.com/alec.git"
     LANGUAGES CXX
@@ -13,7 +13,8 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-find_package(cemplate 0.1.7 CONFIG REQUIRED)
+find_package(cemplate 0.2.0 CONFIG REQUIRED)
+
 # ---- Build library ----
 
 set(PARSER_DIR "${CMAKE_CURRENT_BINARY_DIR}/source")
