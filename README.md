@@ -21,7 +21,7 @@ adapted for other use cases.
 
 ## Dependencies
 
-* CMake 3.25.2 or latter
+* CMake 3.14 or latter
 * Compiler with C++20 support (tested on clang version 16.0.5)
 * Flex 2.6.4
 * Bison 3.8.2
@@ -32,9 +32,9 @@ adapted for other use cases.
 See the [`BUILDING`](BUILDING.md) document.
 
 
-### Usage
+## Usage
 
-> Please reference demo folder for relevant usage example.
+> Please reference demo folder for relevant usage examples.
 
 Everything that this library provide is found in `alec` namespace.
 Functions have names shown in the table below, whilst templates have suffix _v

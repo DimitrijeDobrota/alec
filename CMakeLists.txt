@@ -13,8 +13,6 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
-find_package(cemplate 0.2.0 CONFIG REQUIRED)
-
 # ---- Build library ----
 
 set(PARSER_DIR "${CMAKE_CURRENT_BINARY_DIR}/source")
@@ -39,6 +37,8 @@ set_source_files_properties(${PARSER_OUT} PROPERTIES SKIP_LINTING ON)
 
 add_executable(generator "${LEXER_OUT}" "${PARSER_OUT}" source/generator.cpp)
 target_include_directories(generator PRIVATE source ${PARSER_DIR})
+
+find_package(cemplate CONFIG REQUIRED)
 
 target_link_libraries(generator PRIVATE cemplate::cemplate)
 target_compile_features(generator PUBLIC cxx_std_20)

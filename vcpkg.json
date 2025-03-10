@@ -1,0 +1,19 @@
+{
+  "name": "alec",
+  "version-semver": "0.1.17",
+  "dependencies": [
+    {
+      "name": "cemplate",
+      "version>=": "0.2.0"
+    }
+  ],
+  "default-features": [],
+  "features": {
+    "test": {
+      "description": "Dependencies for testing",
+      "dependencies": [
+      ]
+    }
+  },
+  "builtin-baseline": "eba7c6a894fce24146af4fdf161fef8e90dd6be3"
+}
