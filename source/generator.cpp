@@ -41,16 +41,19 @@ void generate_variables()
 {
   using namespace cemplate;  // NOLINT
 
-  std::cout << "\n/* Template compile-time variables */\n";
+  Program prog(std::cout);
 
-  std::cout << "\n/* Forward-declare templates */\n";
+  prog.comment("Template compile-time variables\n");
+  prog.comment("Forward-declare templates\n");
+
   const auto dupes = generate_dupes();
   for (const auto& dup : dupes) {
-    std::cout << "template <auto... val> static const char * const " << dup
-              << "_v = \"\";\n";
+    prog.template_decl({"auto... val"});
+    prog.declaration("static const char* const", dup + "_v", string(""));
+    prog.line_empty();
   }
 
-  std::cout << "\n/* Template specialization */\n\n";
+  prog.comment("Template specializations\n");
   for (const auto& record : alec::records) {
     if (record.recipe.empty()) {  // comment
       std::cout << record.name << '\n';
@@ -64,35 +67,37 @@ void generate_variables()
     }
 
     if (!record.args.empty()) {
-      std::cout << Template(record.args);
+      prog.template_decl(record.args);
     }
 
     if (!record.rules.empty()) {
-      std::cout << Requires(
-          join(params,
-               " && ",
-               [&](const auto& param)
-               {
-                 return join(record.rules,
-                             " && ",
-                             [&](const auto& rule)
-                             { return TemplateD(rule + "_v", param); });
-               }));
+      prog.require(join(std::begin(params),
+                        std::end(params),
+                        " && ",
+                        [&](const auto& param)
+                        {
+                          return join(
+                              std::begin(record.rules),
+                              std::end(record.rules),
+                              " && ",
+                              [&](const auto& rule)
+                              { return template_def(rule + "_v", {param}); });
+                        }));
     }
 
-    std::cout << "static constexpr auto " << record.name + "_v";
+    const auto var = record.name + "_v";
 
-    if (dupes.contains(record.name)) {
-      std::cout << TemplateD("", params);
-    }
+    const auto type =
+        dupes.contains(record.name) ? template_def(var, params) : var;
 
-    std::cout << " = ";
-    if (!record.recipe.empty() && record.recipe[0][0] == '"') {
-      std::cout << TemplateD("details::escape_literal", record.recipe[0]);
-    } else {
-      std::cout << TemplateD("details::escape", record.recipe);
-    }
-    std::cout << ";\n\n";
+    const auto* temp = !record.recipe.empty() && record.recipe[0][0] == '"'
+        ? "details::escape_literal"
+        : "details::escape";
+
+    prog.declaration(
+        "static constexpr auto", type, template_def(temp, record.recipe));
+
+    prog.line_empty();
   }
 }
 
@@ -100,7 +105,9 @@ void generate_functions()
 {
   using namespace cemplate;  // NOLINT
 
-  std::cout << "\n/* Run-time functions */\n\n";
+  Program prog(std::cout);
+
+  prog.comment("Run-time functions\n");
   for (const auto& record : alec::records) {
     if (record.recipe.empty()) {  // comment
       std::cout << record.name << '\n';
@@ -113,25 +120,26 @@ void generate_functions()
       params.emplace_back(arg.substr(arg.find(' ') + 1));
     }
 
-    std::cout << Function(record.name, "static constexpr auto", record.args);
+    prog.function_open(record.name, "static constexpr auto", record.args);
 
     if (!record.rules.empty()) {
       for (const auto& param : params) {
-        std::cout << Statement(Call(
+        prog.call(
             "assert",
-            join(record.rules,
+            join(std::begin(record.rules),
+                 std::end(record.rules),
                  " && ",
-                 [&](const std::string& rule) { return Call(rule, param); })));
+                 [&](const std::string& rule) { return call(rule, {param}); }));
       }
     }
 
     if (record.args.empty()) {
-      std::cout << Return(record.name + "_v");
+      prog.ret(record.name + "_v");
     } else {
-      std::cout << Return(Call("details::helper::make", record.recipe));
+      prog.ret(call("details::helper::make", record.recipe));
     }
 
-    std::cout << Function(record.name);
+    prog.function_close(record.name);
   }
 }
 
