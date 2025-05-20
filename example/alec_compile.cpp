@@ -5,9 +5,6 @@
 
 using namespace alec;  // NOLINT
 
-using enum Color;
-using enum Decor;
-
 int main()
 {
   std::cout << abuf_enable_v << cursor_hide_v;
@@ -17,11 +14,11 @@ int main()
   std::cout << cursor_down_v<3>;
   std::cout << foreground_v<30> << background_v<196, 53, 64> << "WORLD!\n";
 
-  std::cout << background_v<DEFAULT> << "testing 1...\n"
-            << foreground_v<DEFAULT>;
+  std::cout << background_v<color::def> << "testing 1...\n"
+            << foreground_v<color::def>;
 
-  std::cout << decor_set_v<INVERSE> << "testing 2...\n"
-            << decor_reset_v<INVERSE>;
+  std::cout << decor_set_v<decor::inverse> << "testing 2...\n"
+            << decor_reset_v<decor::inverse>;
 
   std::cout << cursor_up_v<5> << "Hello there!" << cursor_save_v;
   std::cout << cursor_down_v<10> << "General Kenobi!";

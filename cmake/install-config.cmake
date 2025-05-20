@@ -1,6 +1,6 @@
 include(CMakeFindDependencyMacro)
-find_dependency(cemplate)
+find_dependency(based)
 
-if(cemplate_FOUND)
+if(based_FOUND)
   include("${CMAKE_CURRENT_LIST_DIR}/alecTargets.cmake")
 endif()
