@@ -18,7 +18,7 @@ include(cmake/variables.cmake)
 add_library(alec_alec INTERFACE)
 add_library(alec::alec ALIAS alec_alec)
 
-find_package(based 0.1.2 CONFIG REQUIRED)
+find_package(based 0.2.0 CONFIG REQUIRED)
 target_link_libraries(alec_alec INTERFACE based::based)
 
 set_property(
